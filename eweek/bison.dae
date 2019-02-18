@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.79.0 commit date:2018-03-22, commit time:14:10, hash:f4dc9f9d68b</authoring_tool>
     </contributor>
-    <created>2019-02-18T15:14:05</created>
-    <modified>2019-02-18T15:14:05</modified>
+    <created>2019-02-18T15:17:42</created>
+    <modified>2019-02-18T15:17:42</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -205,7 +205,7 @@
         <instance_light url="#Lamp-light"/>
       </node>
       <node id="Bison" name="Bison" type="NODE">
-        <matrix sid="transform">1 0 0 0 0 -1.62921e-7 -1 0 0 1 -1.62921e-7 0 0 0 0 1</matrix>
+        <matrix sid="transform">-1.922778 -6.92204e-14 -2.90331e-7 0 0 1.922778 -4.58426e-7 0 2.90331e-7 -4.58426e-7 -1.922778 1.493978 0 0 0 1</matrix>
         <instance_geometry url="#Bison-mesh" name="Bison">
           <bind_material>
             <technique_common>
