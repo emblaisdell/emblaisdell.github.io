@@ -77,7 +77,7 @@ function addImage(image){
     id: image.name,
     class: "",
     position: position,  // doesn't seem to do anything, known issue
-    scale: "4 4 4",
+    scale: "2 2 2",
     rotation: "-90 0 0",
     src: image.name,
     appendTo : $('#banner-marker')
