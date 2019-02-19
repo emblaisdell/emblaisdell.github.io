@@ -1,11 +1,11 @@
 var memes = [
   {
     pos:[-2,0],
-    name="meme00.jpg"
+    name:"meme00.jpg"
   },
   {
     pos:[2,0],
-    name="meme01.jpg"
+    name:"meme01.jpg"
   }
 ];
 
