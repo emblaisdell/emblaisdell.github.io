@@ -37,7 +37,7 @@ AFRAME.registerComponent("listener", {
 
 
 // MEMES
-var memes = [
+var memes = [/*
   {
     pos:[-6,0],
     name:"meme00.jpg"
@@ -46,7 +46,7 @@ var memes = [
     pos:[6,0],
     name:"meme02.jpg"
   }
-];
+*/];
 
 function addImage(image){
   var position = image.pos[0]+" "+image.pos[1]+" 0";
