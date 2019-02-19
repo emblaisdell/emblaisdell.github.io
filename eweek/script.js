@@ -5,7 +5,7 @@ var memes = [
   },
   {
     pos:[6,0],
-    name:"meme03.jpg"
+    name:"meme02.jpg"
   }
 ];
 
