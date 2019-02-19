@@ -1,10 +1,10 @@
 var memes = [
   {
-    pos:[-4,0],
+    pos:[-6,0],
     name:"meme00.jpg"
   },
   {
-    pos:[4,0],
+    pos:[6,0],
     name:"meme01.jpg"
   }
 ];
@@ -16,7 +16,7 @@ function addImage(image){
     id: image.name,
     class: "",
     position: position,  // doesn't seem to do anything, known issue
-    scale: "2 2 2",
+    scale: "4 4 4",
     rotation: "-90 0 0",
     src: image.name,
     appendTo : $('#hiro-marker')
