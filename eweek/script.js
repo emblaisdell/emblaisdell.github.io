@@ -80,3 +80,12 @@ $(function(){
     addImage(meme);
   })
 });
+
+
+//cursor
+document.addEventListener("keydown", keyDownTextField, false);
+
+function keyDownTextField(e) {
+var keyCode = e.keyCode;
+  console.log(keyCode);
+}
