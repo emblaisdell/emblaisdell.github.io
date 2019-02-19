@@ -11,8 +11,9 @@ var memes = [
 
 function addImage(image){
   var position = image.pos[0]+" "+image.pos[1]+" 0";
+  console.log(position);
   $('<a-image />', {
-    id: name,
+    id: image.name,
     class: "",
     position: position,  // doesn't seem to do anything, known issue
     scale: "1 1 1",
@@ -20,7 +21,7 @@ function addImage(image){
     src: image.name,
     appendTo : $('#hiro-marker')
   });
-  document.getElementById(id).setAttribute("position", position); // this does set position as a workaround
+  document.getElementById(image.name).setAttribute("position", position); // this does set position as a workaround
 }
 
 $(function(){
