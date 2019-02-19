@@ -78,7 +78,7 @@ $(function(){
   $.each(memes,function(i,meme){
     console.log(meme);
     addImage(meme);
-  })
+  });
 });
 
 
@@ -86,6 +86,9 @@ $(function(){
 document.addEventListener("keydown", keyDownTextField, false);
 
 function keyDownTextField(e) {
-var keyCode = e.keyCode;
-  console.log(keyCode);
+  var keyCode = e.keyCode;
+  console.log("key press "+keyCode);
+  if(keyCode==13){ // enter
+    $("#cursor").attr("visible","true");
+  }
 }
