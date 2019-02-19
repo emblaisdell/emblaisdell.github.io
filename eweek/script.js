@@ -89,6 +89,7 @@ function keyDownTextField(e) {
   var keyCode = e.keyCode;
   console.log("key press "+keyCode);
   if(keyCode==13){ // enter
+    console.log("show cursor");
     $("#cursor").attr("visible","true");
   }
 }
