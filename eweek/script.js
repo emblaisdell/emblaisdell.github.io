@@ -24,6 +24,7 @@ function addImage(image){
   document.getElementById(image.name).setAttribute("position", position); // this does set position as a workaround
 }
 
+
 $(function(){
   $.each(memes,function(i,meme){
     console.log(meme);
