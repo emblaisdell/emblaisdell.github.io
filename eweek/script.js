@@ -83,6 +83,10 @@ $(function(){
 
 
 //cursor
+var x = 0;
+var y = 0;
+var step = 0.1;
+
 document.addEventListener("keydown", keyDownTextField, false);
 
 function keyDownTextField(e) {
@@ -91,5 +95,10 @@ function keyDownTextField(e) {
   if(keyCode==13){ // enter
     console.log("show cursor");
     $("#cursor").attr("visible","true");
+  }
+  if(keyCode>=37 && keyCode<=40){
+    x += step*({37:-1,38:0,39:1,40:0}[keyCode]);
+    y += step*({37:0,38:-1,39:0,40:1}[keyCode]);
+    $("#cursor").attr("position", x + " 0 " + y);
   }
 }
