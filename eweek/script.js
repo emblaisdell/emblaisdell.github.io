@@ -10,7 +10,7 @@ var memes = [
 ];
 
 function addImage(image){
-  var position = image.pos.x+" "+image.pos.y+" 0";
+  var position = image.pos[0]+" "+image.pos[1]+" 0";
   $('<a-image />', {
     id: name,
     class: "",
