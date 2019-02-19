@@ -1,5 +1,4 @@
 //SMOOTHING
-var AFRAME = $("#hiro-marker")[0];
 AFRAME.registerComponent("listener", {
   init: function() {
     this.target = document.querySelector('#target'); // your video
