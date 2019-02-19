@@ -61,7 +61,7 @@ var memes = [
 ];
 
 function addImage(image){
-  var position = image.pos[0]+" "+image.pos[1]+" 0";
+  var position = image.pos[0]+" 0 "+image.pos[1];
   console.log(position);
   $('<a-image />', {
     id: image.name+"_hiro",
