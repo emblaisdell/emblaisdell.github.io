@@ -100,5 +100,6 @@ function keyDownTextField(e) {
     x += step*({37:-1,38:0,39:1,40:0}[keyCode]);
     y += step*({37:0,38:-1,39:0,40:1}[keyCode]);
     $("#cursor").attr("position", x + " 0 " + y);
+    console.log("move",x,y);
   }
 }
