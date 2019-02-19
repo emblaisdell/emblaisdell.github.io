@@ -26,5 +26,6 @@ function addImage(image){
 $(function(){
   $.each(memes,function(i,meme){
     console.log(meme);
+    addImage(meme);
   })
 });
