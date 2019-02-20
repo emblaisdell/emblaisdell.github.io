@@ -94,6 +94,7 @@ $(function(){
 });
 
 
+/*
 //cursor
 var x = 0;
 var y = 0;
@@ -114,7 +115,7 @@ function keyDownTextField(e) {
     $("#cursor").attr("position", x + " 0 " + y);
     console.log("move",x,y);
   }
-}
+}*/
 
 // handle click
 document.addEventListener("click", handleClick, false);
