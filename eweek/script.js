@@ -123,8 +123,8 @@ function handleClick(){
   console.log("handleClick");
   $("#background_music").trigger("play");
   var airhorn = $("#airhorn");
-  if(airhorn.attr("paused")){
-    airhorn.attr("currentTime",0);
+  if(airhorn[0].paused){
+    airhorn[0].currentTime=0;
   } else {
     airhorn.trigger("play");
   }
