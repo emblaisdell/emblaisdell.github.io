@@ -122,4 +122,10 @@ document.addEventListener("click", handleClick, false);
 function handleClick(){
   console.log("handleClick");
   $("#background_music").trigger("play");
+  var airhorn = $("#airhorn");
+  if(airhorn.attr("paused")){
+    airhorn.attr("currentTime",0);
+  } else {
+    airhorn.trigger("play");
+  }
 }
