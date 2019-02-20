@@ -97,7 +97,9 @@ $(function(){
     addImage(meme);
   });
   for(var i=0;i<NUM_AIRHORNS; i++){
-    airhorns.push(new Audio("./airhorn.mp3"));
+    var audio = new Audio("./airhorn.mp3");
+    audio.load();
+    airhorns.push(audio);
   }
 });
 
