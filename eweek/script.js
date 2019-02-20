@@ -56,7 +56,7 @@ var memes = [
   },
   {
     pos:[-9,0],
-    name:"meme05.jpg"
+    name:"blink.gif"
   }
 ];
 
