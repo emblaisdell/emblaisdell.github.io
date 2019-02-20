@@ -19,6 +19,9 @@
     <script src="./script.js"></script>
   </head>
   <body style='margin : 0px; overflow: hidden;'>
+    <audio autoplay loop>
+      <source src="./sandstorm.mp3" type="audio/mp3">
+    </audio>
     <a-scene embedded arjs>
   	<a-marker id="hiro-marker" preset="hiro">
       <a-image rotation="-90 0 0" scale="3 3 3" src="engr125.png"></a-image>
@@ -70,8 +73,5 @@
     </a-marker>
   	<a-entity camera></a-entity>
     </a-scene>
-    <audio autoplay loop>
-      <source src="./sandstorm.mp3" type="audio/mp3">
-    </audio>
   </body>
 </html>
