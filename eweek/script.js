@@ -1,3 +1,5 @@
+NUM_AIRHORNS = 5;
+
 //SMOOTHING
 AFRAME.registerComponent("listener", {
   init: function() {
@@ -86,11 +88,18 @@ function addImage(image){
   document.getElementById(image.name).setAttribute("position", position); // this does set position as a workaround
 }
 
+airhorns = [];
+curAirhorn = 0;
+
 $(function(){
   $.each(memes,function(i,meme){
     console.log(meme);
     addImage(meme);
   });
+  airhorn = $("#airhorn")[0];
+  for(var i=0;i<NUM_AIRHORNS; i++){
+    airhorns.append(airhorn.cloneNode());
+  }
 });
 
 
@@ -123,6 +132,7 @@ document.addEventListener("click", handleClick, false);
 function handleClick(){
   console.log("handleClick");
   $("#background_music").trigger("play");
-  var airhorn = $("#airhorn")[0].cloneNode(true);
-  airhorn.play();
+  console.log("curAirhorn = "+curAirhorn);
+  airhorns[curAirhorn].play();
+  curAirhorn = (curAirhorn+1) % NUM_AIRHORNS;
 }
