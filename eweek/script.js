@@ -40,23 +40,23 @@ AFRAME.registerComponent("listener", {
 var memes = [
   {
     pos:[0,-3],
-    name:"meme02.jpg"
+    name:"elon1.jpg"
   },
   {
     pos:[-3,-3],
-    name:"meme00.jpg"
+    name:"batman.jpg"
   },
   {
     pos:[-6,-3],
-    name:"meme04.jpg"
+    name:"skert.jpg"
   },
   {
     pos:[-9,-3],
-    name:"meme01.jpg"
+    name:"youngdrake.jpg"
   },
   {
     pos:[-9,0],
-    name:"blink.gif"
+    name:"egg.jpg"
   }
 ];
 
