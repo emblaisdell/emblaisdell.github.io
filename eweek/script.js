@@ -88,8 +88,9 @@ function addImage(image){
   document.getElementById(image.name).setAttribute("position", position); // this does set position as a workaround
 }
 
-airhorns = [];
-curAirhorn = 0;
+var airhorns = [];
+var curAirhorn = 0;
+var background_music;
 
 $(function(){
   $.each(memes,function(i,meme){
@@ -101,6 +102,7 @@ $(function(){
     audio.preload = "auto";
     airhorns.push(audio);
   }
+  background_music = new Audio("./sandstorm.mp3");
 });
 
 
@@ -136,4 +138,5 @@ function handleClick(){
   console.log("curAirhorn = "+curAirhorn);
   airhorns[curAirhorn].play();
   curAirhorn = (curAirhorn+1) % NUM_AIRHORNS;
+  background_music.play();
 }
