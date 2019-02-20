@@ -60,6 +60,7 @@ var memes = [
   }
 ];
 
+
 function addImage(image){
   var position = image.pos[0]+" 0 "+image.pos[1];
   console.log(position);
