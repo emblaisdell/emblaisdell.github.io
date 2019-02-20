@@ -98,7 +98,7 @@ $(function(){
   });
   airhorn = $("#airhorn")[0];
   for(var i=0;i<NUM_AIRHORNS; i++){
-    airhorns.append(airhorn.cloneNode());
+    airhorns.push(airhorn.cloneNode());
   }
 });
 
