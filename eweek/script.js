@@ -98,7 +98,7 @@ $(function(){
   });
   for(var i=0;i<NUM_AIRHORNS; i++){
     var audio = new Audio("./airhorn.mp3");
-    audio.load();
+    audio.preload = "auto";
     airhorns.push(audio);
   }
 });
