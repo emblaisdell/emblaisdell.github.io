@@ -120,5 +120,6 @@ function keyDownTextField(e) {
 document.addEventListener("click", handleClick, false);
 
 function handleClick(){
+  console.log("handleClick");
   $("#background_music").trigger("play");
 }
