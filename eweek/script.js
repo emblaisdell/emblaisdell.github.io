@@ -123,11 +123,6 @@ document.addEventListener("click", handleClick, false);
 function handleClick(){
   console.log("handleClick");
   $("#background_music").trigger("play");
-  var airhorn = $("#airhorn");
-  console.log("airhorn "+airhorn[0].paused);
-  if(airhorn[0].paused){
-    airhorn[0].currentTime=0;
-  } else {
-    airhorn.trigger("play");
-  }
+  var airhorn = $("#airhorn")[0].cloneNode(true);
+  airhorn.play();
 }
