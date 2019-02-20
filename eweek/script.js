@@ -115,3 +115,10 @@ function keyDownTextField(e) {
     console.log("move",x,y);
   }
 }
+
+// handle click
+document.addEventListener("click", handleClick, false);
+
+function handleClick(){
+  $("#background_music").trigger("play");
+}
