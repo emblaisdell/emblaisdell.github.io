@@ -49,7 +49,7 @@ var memes = [
     name:"bronze.png"
   },
   {
-    RESPECT
+    //RESPECT
     pos:[0,-3],
     name:"hillary.jpg"
   },
