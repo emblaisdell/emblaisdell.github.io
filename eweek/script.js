@@ -75,7 +75,7 @@ function addImage(image){
     id: image.name+"_hiro",
     class: "",
     position: position,  // doesn't seem to do anything, known issue
-    scale: "2 2 2",
+    scale: "1 1 1",
     rotation: "-90 0 0",
     src: image.name,
     appendTo : $('#hiro-marker')
@@ -85,7 +85,7 @@ function addImage(image){
     id: image.name,
     class: "",
     position: position,  // doesn't seem to do anything, known issue
-    scale: "2 2 2",
+    scale: "1 1 1",
     rotation: "-90 0 0",
     src: image.name,
     appendTo : $('#banner-marker')
