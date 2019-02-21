@@ -59,11 +59,11 @@ var memes = [
   },
   {
     pos:[-6.4,-3],
-    name:"dolladollabillsyall.png"
+    name:"dolladollabillsyall.jpg"
   },
   {
     pos:[-9.6,-3],
-    name:"science.png"
+    name:"science.jpg"
   },
   {
     pos:[-9.6,0],
