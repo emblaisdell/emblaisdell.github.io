@@ -45,19 +45,19 @@ var memes = [
     name:"elon1.jpg"
   },
   {
-    pos:[-3,-3],
+    pos:[-3.2,-3],
     name:"batman.jpg"
   },
   {
-    pos:[-6,-3],
+    pos:[-6.4,-3],
     name:"skert.jpg"
   },
   {
-    pos:[-9,-3],
+    pos:[-9.6,-3],
     name:"youngdrake.jpg"
   },
   {
-    pos:[-9,0],
+    pos:[-9.6,0],
     name:"egg.jpg"
   }
 ];
