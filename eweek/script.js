@@ -40,35 +40,35 @@ AFRAME.registerComponent("listener", {
 
 // MEMES
 var memes = [
-  {
+  /*{
     pos:[6,0],
     name:"IMG_3385.jpg"
-  },
+  },*/
   {
     pos:[0,0],
     name:"bronze.png"
   },
-  {
+  /*{
     //RESPECT
     pos:[0,-3],
     name:"hillary.jpg"
-  },
+  },*/
   {
     pos:[-3.2,-3],
     name:"gold.png"
   },
-  {
+  /*{
     pos:[-6.4,-3],
     name:"science.jpg"
-  },
+  },*/
   {
     pos:[-9.6,-3],
     name:"silver.png"
   },
-  {
+  /*{
     pos:[-9.6,0],
     name:"dolladollabillsyall.jpg"
-  }
+  }*/
 ];
 
 
