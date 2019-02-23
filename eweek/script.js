@@ -42,32 +42,32 @@ AFRAME.registerComponent("listener", {
 var memes = [
   {
     pos:[6,0],
-    name:"IMG_3385.jpg"
+    name:"sub2pewds.jpg"
   },
   {
     pos:[0,0],
-    name:"bronze.png"
+    name:"iwantyou.jpg"
   },
   {
     //RESPECT
     pos:[0,-3],
-    name:"hillary.jpg"
+    name:"pewdsdrake.jpg"
   },
   {
     pos:[-3.2,-3],
-    name:"gold.png"
+    name:"subfun.jpg"
   },
   {
     pos:[-6.4,-3],
-    name:"science.jpg"
+    name:"pewds.jpg"
   },
   {
     pos:[-9.6,-3],
-    name:"silver.png"
+    name:"keepcalm.png"
   },
   {
     pos:[-9.6,0],
-    name:"dolladollabillsyall.jpg"
+    name:".jpg"
   }
 ];
 
