@@ -68,11 +68,17 @@
       </tr>
     </table>
 
-    <p>All of the values are stored in fixed point (see above), except for the configuration (see below).  Torques are read/write; everything else is read-only, except for configuration, which is sometimes writable (see below).</p>
+    <p>All of the values are stored as radians in fixed point (see above), except for the configuration (see below).  Torques are read/write; everything else is read-only, except for configuration, which is sometimes writable (see below).</p>
 
     <h4>Configuration</h4>
     <p>The configuration is a 32-bit binary word representing the current position of all of the cups.</p>
-    <p>The lowest order bit represts whether the board is 'flipped' or not.</p>
+    <p>The lowest order bit represts whether the board is 'flipped' or not.  The following images show the bit corresponding to the cup in each position; they are with a 0 and 1 low order bit respectively.</p>
+    <div class="row">
+      <img class="col-6" src="./images/cupdiagramnum.png"/>
+      <img class="col-6" src="./images/cupdiagramnumflip.png"/>
+    </div>
+    <p>Notice therefore that <code>0x000026fe</code> is the classic beer pong 10 cup configuration.  The top 13 high order bits are ignored.</p>
+    <p>The configuration can always be read, but it can only be written to once per game until two cups remain, when it becomes permanantly read/write.</p>
   </div>
 </body>
 </html>
