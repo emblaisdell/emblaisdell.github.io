@@ -1,0 +1,6 @@
+mod int32 1
+base int32
+
+mod add 2
+
+rw add(int32($0),int32($1)) ~> int32(calc(!0,!<./arithmetic.wasm>,!"add",$0,$1))
