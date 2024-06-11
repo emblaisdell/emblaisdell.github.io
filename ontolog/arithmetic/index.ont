@@ -6,3 +6,4 @@ base int32
 mod add 2
 
 rw add(int32($0),int32($1)) ~> int32(calc(!0,!<./arithmetic.wasm>,!"add",$0,$1))
+rw int32($0) ~> utf8(calc(!0,!<./arithmetic.wasm>,!"int32_to_str",$0))

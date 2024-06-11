@@ -5,3 +5,5 @@ mod cons 2
 base cons
 mod nil 0
 base nil
+
+mod utf8 1
