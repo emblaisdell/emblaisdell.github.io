@@ -1,3 +1,5 @@
+import <../prelude.ont>
+
 mod int32 1
 base int32
 
