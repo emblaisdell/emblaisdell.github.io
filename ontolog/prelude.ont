@@ -6,4 +6,5 @@ base cons
 mod nil 0
 base nil
 
+mod int32 1
 mod utf8 1
