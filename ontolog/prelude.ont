@@ -7,4 +7,6 @@ mod nil 0
 base nil
 
 mod int32 1
+base int32
 mod utf8 1
+base utf8
