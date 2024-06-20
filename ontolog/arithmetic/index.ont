@@ -1,9 +1,58 @@
-import <../prelude.ont>
+import <https://emblaisdell.github.io/ontolog/prelude.ont>
+import <https://emblaisdell.github.io/ontolog/arithmetic/index.ont>
+
+// Hello peeps
+
+mod cons 2
+base cons
+mod nil 0
+base nil
+mod concat 2
+
+rw concat(cons($0,$1),$2) ~> cons($0,concat($1,$2))
+rw concat(nil(),cons($0,$1)) ~> cons($0,$1)
+rw concat(nil(),nil()) ~> nil()
+
+run concat(cons(!<hello>,nil()),cons(!<world>,nil())) ~> concat($0,$1)
+
+run concat(cons(!<hello>,nil()),cons(!<world>,nil())) ~> cons($0,$1)
+
+run concat(cons(!<hello>,nil()),cons(!<world>,nil())) ~> $0
+
+run concat(cons(!<hello>,nil()),cons(!<world>,nil())) ~> nil()
+
+mod a 1
+mod b 1
+mod c 1
+
+rw a($0) ~> b($0)
+rw b($0) ~> c($0)
+
+run a(!<test>) ~> c($0)
+
+run !69 ~> $0
+run !"Hello world" ~> $0
 
 mod int32 1
 base int32
 
 mod add 2
 
-rw add(int32($0),int32($1)) ~> int32(calc(!0,!<./arithmetic.wasm>,!"add",$0,$1))
-rw int32($0) ~> utf8(calc(!0,!<./arithmetic.wasm>,!"int32_to_str",$0))
+rw add(int32($0),int32($1)) ~> int32(calc(!"wasm_v0",!<file://C:/Users/Owner/Projects/arithmetic/pkg/arithmetic_bg.wasm>,!"add",$0,$1))
+rw int32($0) ~> utf8(calc(!"wasm_v0",!<file://C:/Users/Owner/Projects/arithmetic/pkg/arithmetic_bg.wasm>,!"int32_to_str",$0))
+
+
+run add(int32(!420),int32(!69)) ~> $0
+
+run int32(!69) ~> utf8($0)
+
+print utf8(calc(!"wasm_v0",!<file://C:/Users/Owner/Projects/arithmetic/pkg/arithmetic_bg.wasm>,!"hello_world"))
+
+print utf8(calc(!"wasm_v0",!<file://C:/Users/Owner/Projects/arithmetic/pkg/arithmetic_bg.wasm>,!"id",!"sup"))
+
+print int32(!69)
+
+print add(int32(!69),int32(!420))
+
+print add(add(int32(!1),int32(!2)),int32(!3))
+
