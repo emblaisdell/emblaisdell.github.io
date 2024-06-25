@@ -37,7 +37,6 @@ export class ACEBuffer {
             view.setInt32(pos, buf.length, false)
             out.set(buf, pos + 4)
             pos += 4 + buf.length
-            console.log("fromList loop", buf, pos, out)
         });
         return new ACEBuffer(out)
     }
