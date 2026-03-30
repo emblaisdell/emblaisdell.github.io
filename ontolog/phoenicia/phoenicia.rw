@@ -1,0 +1,10 @@
+(
+    (
+        (parse (Str $0))
+        (Str (podman_bc_lp32_v0 (!load "./phoenicia.tar") (Cons "parse" $0)))
+    )
+    (
+        (Doc (Module "parse"))
+        (Str "Parse a Phoenicia file string and return an s-expression of rewrites.  The function expects one or more `calc \"path\" { ... }` blocks, each containing zero or more declarations of the form `name : Type* -> Type;`, optional `@` annotations on the line(s) immediately before a declaration, and `//` line comments immediately above a declaration for documentation.")
+    )
+)
