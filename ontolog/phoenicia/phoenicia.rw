@@ -1,11 +1,11 @@
 (
     (
         (Ext:pho $0)
-        (TRSRewrites (podman_bc_lp32_v0 (!load "http://emblaisdell.github.io/ontolog/phoenicia/phoenicia.tar") (Cons "parse" (Cons $0 (Nil)))))
+        (TRSRewrites (podman_bc_lp32_v0 (!load "https://emblaisdell.github.io/ontolog/phoenicia/phoenicia.tar") (Cons "parse" (Cons $0 (Nil)))))
     )
     (
         (parse (Str $0))
-        (Str (podman_bc_lp32_v0 (!load "http://emblaisdell.github.io/ontolog/phoenicia/phoenicia.tar") (Cons "parse" (Cons $0 (Nil)))))
+        (Str (podman_bc_lp32_v0 (!load "https://emblaisdell.github.io/ontolog/phoenicia/phoenicia.tar") (Cons "parse" (Cons $0 (Nil)))))
     )
     (
         (Doc (Module "parse"))
