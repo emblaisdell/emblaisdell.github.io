@@ -1,11 +1,11 @@
 (
     (
         (Ext:pho $0)
-        (TRSRewrites (podman_bc_lp32_v0 (!load "./phoenicia.tar") (Cons "parse" $0)))
+        (TRSRewrites (podman_bc_lp32_v0 (!load "./phoenicia.tar") (Cons "parse" (Cons $0 (Nil)))))
     )
     (
         (parse (Str $0))
-        (Str (podman_bc_lp32_v0 (!load "file://phoenicia.tar") (Cons "parse" $0)))
+        (Str (podman_bc_lp32_v0 (!load "file://phoenicia.tar") (Cons "parse" (Cons $0 (Nil)))))
     )
     (
         (Doc (Module "parse"))
