@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; media-src 'none'; object-src 'none'" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Cloud the Peacekeeper</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game" width="1000" height="600"></canvas>
+
+    <!-- Start menu -->
+    <div id="menu" class="overlay">
+      <div class="panel">
+        <h1>Cloud <span class="tag">the</span> Peacekeeper</h1>
+        <p class="blurb">
+          You are a cloud drifting over a one-street town. People wander in from both
+          sides. Some carry trouble. Your only power is lightning &mdash; but a strike
+          <em>kills</em>. A near miss only scares folk away. Keep people alive long enough
+          and grateful builders will start raising a monument. Finish it to win.
+        </p>
+
+        <div class="field">
+          <label>Cloud name</label>
+          <div id="nameChoices" class="choices"></div>
+          <input id="customName" type="text" maxlength="16" placeholder="…or type your own name" />
+        </div>
+
+        <div class="field">
+          <label>Busyness</label>
+          <div id="diffChoices" class="choices"></div>
+        </div>
+
+        <button id="startBtn" class="primary">Drift in</button>
+
+        <details class="howto">
+          <summary>How to play</summary>
+          <ul>
+            <li><b>Move</b> the mouse to drift the cloud.</li>
+            <li><b>Click</b> (or press <b>Space</b>) to strike lightning where you point.</li>
+            <li><b>Direct hit</b> &rarr; that citizen falls (a death you should avoid).</li>
+            <li><b>Near miss</b> &rarr; citizens flee away from the bolt, faster.</li>
+            <li><b>Medics</b> revive the fallen if they reach them in time.</li>
+            <li><b>Assassins</b> &amp; <b>cowboys</b> harm others; <b>knights</b> are protected.</li>
+            <li>Avoid permanent deaths to grow your <b>combo</b> and summon <b>builders</b>.</li>
+            <li>Press <b>M</b> to mute, <b>P</b> to pause.</li>
+          </ul>
+        </details>
+      </div>
+    </div>
+
+    <!-- End screen (win/lose) -->
+    <div id="endScreen" class="overlay hidden">
+      <div class="panel">
+        <h1 id="endTitle">Statue complete</h1>
+        <p id="endBlurb" class="blurb"></p>
+        <div id="endStats" class="stats"></div>
+        <button id="againBtn" class="primary">Play again</button>
+      </div>
+    </div>
+
+    <!-- Pause veil -->
+    <div id="pauseVeil" class="overlay hidden">
+      <div class="panel small"><h1>Paused</h1><p class="blurb">Press <b>P</b> to resume.</p></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

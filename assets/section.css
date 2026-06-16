@@ -1,0 +1,56 @@
+/* Shared styling for the four section pages (blog, stories, games, projects).
+   Drawn from the home page's "Calligraphic" editorial theme so the sections
+   feel like one site regardless of which random theme the home page showed. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100vh; line-height: 1.65;
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: #f7f5f0; color: #232020;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: #1a1717; }
+
+.wrap { max-width: 760px; margin: 0 auto; padding: 3.5rem 1.25rem 4.5rem; }
+
+.crumb { font-size: .85rem; color: #8a8278; text-decoration: none; }
+.crumb:hover { color: #9a7b3f; }
+
+.page-head { margin: 1.5rem 0 2.25rem; }
+.page-head h1 {
+  font-family: Georgia, "Times New Roman", serif; font-weight: 600;
+  font-size: 2.4rem; letter-spacing: -.01em; margin: 0; color: #1a1717;
+}
+.page-head h1::after { content: ""; display: block; width: 40px; height: 2px; background: #9a7b3f; margin-top: .6rem; }
+.page-head .lede { color: #5f5950; margin: .9rem 0 0; font-size: 1.05rem; max-width: 60ch; }
+
+/* Generic item card (a post, a story, a project, a game) */
+.item {
+  display: block; text-decoration: none; color: inherit;
+  background: #fff; border: 1px solid #e7e2d8; border-radius: 3px;
+  padding: 1.4rem; margin-bottom: 1.1rem;
+  transition: border-color .2s ease, transform .2s ease;
+}
+.item:hover { border-color: #9a7b3f; transform: translateY(-1px); }
+.item h2 { font-family: Georgia, serif; font-weight: 600; font-size: 1.3rem; margin: 0 0 .4rem; color: #1a1717; }
+.item p { margin: 0; color: #5f5950; }
+.item .meta { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: #9a7b3f; font-weight: 600; margin-bottom: .4rem; }
+
+/* Game cards carry a screenshot */
+.game { padding: 0; overflow: hidden; }
+.game .shot { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: #0b0a1a; border-bottom: 1px solid #e7e2d8; }
+.game .body { padding: 1.3rem 1.4rem; }
+.game .body h2 { margin: 0 0 .45rem; }
+.game .play { display: inline-block; margin-top: .9rem; font-size: .82rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #9a7b3f; }
+
+/* Empty state for sections without entries yet */
+.empty {
+  border: 1px dashed #d9d2c4; border-radius: 3px; background: #fcfbf8;
+  padding: 2rem 1.5rem; text-align: center; color: #8a8278;
+}
+.empty .soon { display: block; text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; color: #9a7b3f; font-weight: 600; margin-bottom: .5rem; }
+
+.back { display: inline-block; margin-top: 2.5rem; color: #1a1717; text-decoration: none; font-size: .95rem; }
+.back:hover { color: #9a7b3f; }
