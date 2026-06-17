@@ -21,7 +21,7 @@ Personally, I have lots of fun small ideas and love getting to make them. A samp
 ## Favorite Quotes
 
 The one by Whitehead about carefully using mental effort. (Whitehead is my academic
-great-grandfather, which the page now notes.)
+great-great-grandfather, which the page now notes.)
 
 The one by Alan Watts about the world being fundamentally playful. Candidates below
 (strongest first) — all from his recorded lectures, so wording varies slightly between
@@ -63,7 +63,7 @@ shares one stylesheet (`assets/section.css`).
 
 ### Blog
 
-`/blogs/` — writing on math / ML / life. **(Page live; first post in progress)**
+`/blogs/` — writing on math / tech / life. **(Page live; first post in progress)**
 The first draft, *Iterative Blogging* (`blogs/iterativeblogging.md`), is being written; it
 is not yet wired into the page, which currently shows a "no posts yet" state.
 

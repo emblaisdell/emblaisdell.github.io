@@ -1,20 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="theme-academic">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Eben Blaisdell — Mathematician | Maker</title>
   <meta name="description" content="Eben Blaisdell — mathematical logician, cyber security researcher, and maker of small fun things." />
 
-  <!-- Pick a theme before first paint to avoid a flash. The class lands on <html>. -->
-  <script>
-    (function () {
-      var THEMES = ['theme-academic', 'theme-bootstrap', 'theme-vibe', 'theme-calligraphic'];
-      var pick = THEMES[Math.floor(Math.random() * THEMES.length)];
-      document.documentElement.className = pick;
-      document.documentElement.setAttribute('data-themes', THEMES.join(','));
-    })();
-  </script>
+  <!-- Theme is chosen before first paint (no flash): a fresh visit or a refresh
+       gets a random theme; navigating the site keeps it. No JS → the
+       theme-academic class on <html> stands. -->
+  <script src="assets/theme.js"></script>
 
   <style>
     /* ============================================================
@@ -228,15 +223,10 @@
         opposite is the case. Civilization advances by extending the number of
         important operations which we can perform without thinking about
         them.&rdquo;
-        <cite>&mdash; Alfred North Whitehead (my academic great-grandfather), <i>An Introduction to Mathematics</i> (1911)</cite>
+        <cite>&mdash; Alfred North Whitehead (my academic great-great-grandfather), <i>An Introduction to Mathematics</i> (1911)</cite>
       </blockquote>
       <blockquote>
-        &ldquo;Existence is basically playful. There is no necessity for it
-        whatsoever. It isn&rsquo;t going anywhere, that is to say, it doesn&rsquo;t
-        have some destination that it ought to arrive at. It is best understood by
-        analogy with music, because music, as an art form, is essentially playful.
-        We say &ldquo;you <i>play</i> the piano,&rdquo; you don&rsquo;t
-        &ldquo;work&rdquo; the piano.&rdquo;
+        &ldquo;Existence is basically playful.&rdquo;
         <cite>&mdash; Alan Watts</cite>
       </blockquote>
     </section>
@@ -244,34 +234,31 @@
     <section id="explore">
       <h2>Around the site</h2>
       <div class="cards">
-        <a class="card is-placeholder" href="blogs/">
+        <a class="card" href="blogs/">
           <h3>Blog</h3>
-          <p>Math, ML, and life.</p>
-          <span class="soon">Coming soon</span>
+          <p>Math, tech, and life</p>
         </a>
 
-        <a class="card is-placeholder" href="stories/">
+        <a class="card" href="stories/">
           <h3>Short Stories</h3>
-          <p>A few I want to write.</p>
-          <span class="soon">Coming soon</span>
+          <p>Fiction stories I'd been meaning to write</p>
         </a>
 
         <a class="card" href="games/">
           <h3>Games</h3>
-          <p>Childhood games, rebuilt for the browser. Metrordle and Cloud the Peacekeeper.</p>
+          <p>Mostly games from high school / college re-vibed for the browser</p>
         </a>
 
-        <a class="card is-placeholder" href="projects/">
+        <a class="card" href="projects/">
           <h3>Projects</h3>
-          <p>Mostly physical things I've built for fun.</p>
-          <span class="soon">Coming soon</span>
+          <p>Fun tech and IRL things I've made</p>
         </a>
       </div>
     </section>
 
     <footer class="site-footer">
-      <span id="theme-label">theme</span>
-      <button class="shuffle" id="shuffle" type="button" title="Try another look">&#8635; shuffle theme</button>
+      <span id="theme-name">theme</span>
+      <button class="shuffle" id="theme-cycle" type="button" title="Switch to the next theme">&#8635; cycle theme</button>
     </footer>
   </div>
 
@@ -290,26 +277,7 @@
       // Pre-sized 320px square thumbnails (Lanczos) so the browser only does a
       // gentle final scale — much smoother than downscaling the full photo.
       img.src = 'pics_of_me/thumbs/' + PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
-
-      // ---- Theme label + manual shuffle ----------------------------------
-      var THEMES = (document.documentElement.getAttribute('data-themes') || '').split(',');
-      var NAMES = {
-        'theme-academic': 'Academic',
-        'theme-bootstrap': 'Bootstrap 2012',
-        'theme-vibe': 'Vibe Glow',
-        'theme-calligraphic': 'Calligraphic'
-      };
-      function label() {
-        var cur = document.documentElement.className;
-        document.getElementById('theme-label').textContent = 'theme: ' + (NAMES[cur] || cur);
-      }
-      label();
-      document.getElementById('shuffle').addEventListener('click', function () {
-        var cur = document.documentElement.className;
-        var rest = THEMES.filter(function (t) { return t !== cur; });
-        document.documentElement.className = rest[Math.floor(Math.random() * rest.length)];
-        label();
-      });
+      // Theme persistence + the "cycle theme" control live in assets/theme.js.
     })();
   </script>
 </body>

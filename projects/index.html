@@ -1,32 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="theme-academic">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Projects — Eben Blaisdell</title>
   <meta name="description" content="Mostly physical projects Eben Blaisdell has built for fun." />
+  <script src="../assets/theme.js"></script>
   <link rel="stylesheet" href="../assets/section.css" />
 </head>
 <body>
-  <div class="wrap">
+  <div class="wrap wide">
     <a class="crumb" href="../">&larr; Eben Blaisdell</a>
 
     <header class="page-head">
       <h1>Projects</h1>
-      <p class="lede">Mostly physical things I've built for fun on the side &mdash;
-      write-ups, photos, and how they came together.</p>
+      <p class="lede">Programming and physical projects I've built for fun on the side.</p>
     </header>
 
-    <a class="item game" href="redstone_lamp/redstone_lamp.html">
-      <img class="shot" src="redstone_lamp/redstone_lamp.jpg" alt="The finished redstone lamp glowing in a corner" loading="lazy" />
-      <div class="body">
-        <h2>Redstone Lamp</h2>
-        <p>An upcycled lamp turned into a Minecraft redstone lamp &mdash; a laser-cut
-        shade designed against the clock with Claude Code.</p>
-      </div>
-    </a>
+    <div class="grid">
+      <a class="item game" href="redstone_lamp/redstone_lamp.html">
+        <img class="shot" src="redstone_lamp/redstone_lamp_thumb.jpg" alt="The finished redstone lamp glowing in a corner" loading="lazy" />
+        <div class="body">
+          <h2>Redstone Lamp</h2>
+          <p>A lasercut lamp shade cover designed with Claude Code.</p>
+        </div>
+      </a>
+    </div>
 
     <a class="back" href="../">&larr; Back home</a>
+
+    <footer class="site-footer">
+      <span id="theme-name">theme</span>
+      <button class="shuffle" id="theme-cycle" type="button" title="Switch to the next theme">&#8635; cycle theme</button>
+    </footer>
   </div>
 </body>
 </html>

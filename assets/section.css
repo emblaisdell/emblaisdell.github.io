@@ -1,94 +1,171 @@
-/* Shared styling for the four section pages (blog, stories, games, projects).
-   Drawn from the home page's "Calligraphic" editorial theme so the sections
-   feel like one site regardless of which random theme the home page showed. */
+/* Shared styling for the section + post pages (blog, stories, games, projects).
+   Theme-aware: each of the four site themes is a set of CSS variables on
+   <html class="theme-*">, and the rules below consume them, so the theme the
+   visitor picks on the home page follows them here too. Default (no JS) is
+   Academic, set as class on <html> in the markup. */
 
+/* ---- Theme variables -------------------------------------------------- */
+:root, html.theme-academic {
+  --bg: #fff; --fg: #111; --muted: #555; --heading: #111;
+  --accent: #000; --accent-soft: #888; --link: #0000ee;
+  --border: #000; --card-bg: #fff; --crumb: #555;
+  --font-body: "Times New Roman", Times, Georgia, serif;
+  --font-display: "Times New Roman", Times, Georgia, serif;
+  --maxw: 700px; --radius: 0; --shadow: none;
+  --code-bg: #ececec; --pre-bg: #111; --pre-fg: #fff; --rule: #000;
+  --quote-bg: #f6f5f3; --empty-bg: #fafafa; --empty-border: #bbb;
+}
+html.theme-bootstrap {
+  --bg: #f5f5f5; --fg: #333; --muted: #777; --heading: #2a2a2a;
+  --accent: #08c; --accent-soft: #9fc7e0; --link: #08c;
+  --border: #ddd; --card-bg: #fff; --crumb: #999;
+  --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --maxw: 760px; --radius: 4px; --shadow: 0 1px 6px rgba(0,0,0,.12);
+  --code-bg: #eee; --pre-bg: #2a2a2a; --pre-fg: #f2f2f2; --rule: #eaeaea;
+  --quote-bg: #f7f7f7; --empty-bg: #fafafa; --empty-border: #ccc;
+}
+html.theme-vibe {
+  --bg: radial-gradient(1200px 600px at 70% -10%, #1b1147 0%, #0b0a1a 55%) fixed, #0b0a1a;
+  --fg: #c9c8e0; --muted: #8b8ab8; --heading: #ece9ff;
+  --accent: #a78bfa; --accent-soft: #6d5bb0; --link: #a78bfa;
+  --border: rgba(255,255,255,.10); --card-bg: rgba(255,255,255,.04); --crumb: #8b8ab8;
+  --font-body: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --maxw: 760px; --radius: 14px; --shadow: 0 12px 40px rgba(124,58,237,.35);
+  --code-bg: rgba(255,255,255,.10); --pre-bg: #05040d; --pre-fg: #e7e5f5; --rule: rgba(255,255,255,.12);
+  --quote-bg: rgba(255,255,255,.04); --empty-bg: rgba(255,255,255,.03); --empty-border: rgba(255,255,255,.14);
+}
+html.theme-calligraphic {
+  --bg: #f7f5f0; --fg: #232020; --muted: #5f5950; --heading: #1a1717;
+  --accent: #9a7b3f; --accent-soft: #c9bfa6; --link: #1a1717;
+  --border: #e7e2d8; --card-bg: #fff; --crumb: #8a8278;
+  --font-body: ui-sans-serif, "Helvetica Neue", Arial, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+  --maxw: 760px; --radius: 2px; --shadow: 0 8px 30px rgba(0,0,0,.12);
+  --code-bg: #efe9dd; --pre-bg: #2b2724; --pre-fg: #f2efe8; --rule: #e0d9c9;
+  --quote-bg: #fcfbf8; --empty-bg: #fcfbf8; --empty-border: #d9d2c4;
+}
+
+/* ---- Base / structure ------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
   min-height: 100vh; line-height: 1.65;
-  font-family: ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
-  background: #f7f5f0; color: #232020;
+  font-family: var(--font-body);
+  background: var(--bg); color: var(--fg);
   -webkit-font-smoothing: antialiased;
 }
 img { max-width: 100%; display: block; }
-a { color: #1a1717; }
+a { color: inherit; }
 
-.wrap { max-width: 760px; margin: 0 auto; padding: 3.5rem 1.25rem 4.5rem; }
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 3.5rem 1.25rem 4.5rem; }
+/* Listing pages (blog/stories/games/projects index) go wider so the card
+   grid can show several across; article/post pages keep the narrow --maxw. */
+.wrap.wide { max-width: 1140px; }
 
-.crumb { font-size: .85rem; color: #8a8278; text-decoration: none; }
-.crumb:hover { color: #9a7b3f; }
+.crumb { font-size: .85rem; color: var(--crumb); text-decoration: none; }
+.crumb:hover { color: var(--accent); }
 
 .page-head { margin: 1.5rem 0 2.25rem; }
 .page-head h1 {
-  font-family: Georgia, "Times New Roman", serif; font-weight: 600;
-  font-size: 2.4rem; letter-spacing: -.01em; margin: 0; color: #1a1717;
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 2.4rem; letter-spacing: -.01em; margin: 0; color: var(--heading);
 }
-.page-head h1::after { content: ""; display: block; width: 40px; height: 2px; background: #9a7b3f; margin-top: .6rem; }
-.page-head .lede { color: #5f5950; margin: .9rem 0 0; font-size: 1.05rem; max-width: 60ch; }
+.page-head h1::after { content: ""; display: block; width: 40px; height: 2px; background: var(--accent); margin-top: .6rem; }
+.page-head .lede { color: var(--muted); margin: .9rem 0 0; font-size: 1.05rem; max-width: 60ch; }
+
+/* Card grid for the listing pages: ~3-4 across on desktop, then 2 / 1 as the
+   viewport narrows. minmax floor keeps it from going wider than 4 at 1140px. */
+.grid {
+  display: grid; gap: 1.25rem; align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.grid .item, .grid .game { margin-bottom: 0; height: 100%; }
+.grid .empty { grid-column: 1 / -1; }  /* empty state spans the full row */
 
 /* Generic item card (a post, a story, a project, a game) */
 .item {
   display: block; text-decoration: none; color: inherit;
-  background: #fff; border: 1px solid #e7e2d8; border-radius: 3px;
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 1.4rem; margin-bottom: 1.1rem;
   transition: border-color .2s ease, transform .2s ease;
 }
-.item:hover { border-color: #9a7b3f; transform: translateY(-1px); }
-.item h2 { font-family: Georgia, serif; font-weight: 600; font-size: 1.3rem; margin: 0 0 .4rem; color: #1a1717; }
-.item p { margin: 0; color: #5f5950; }
-.item .meta { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: #9a7b3f; font-weight: 600; margin-bottom: .4rem; }
+.item:hover { border-color: var(--accent); transform: translateY(-1px); }
+.item h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.3rem; margin: 0 0 .4rem; color: var(--heading); }
+.item p { margin: 0; color: var(--muted); }
+.item .meta { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 600; margin-bottom: .4rem; }
 
-/* Game cards carry a screenshot */
+/* Game/project cards carry a screenshot */
 .game { padding: 0; overflow: hidden; }
-.game .shot { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: #0b0a1a; border-bottom: 1px solid #e7e2d8; }
+.game .shot { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: #0b0a1a; border-bottom: 1px solid var(--border); }
 .game .body { padding: 1.3rem 1.4rem; }
 .game .body h2 { margin: 0 0 .45rem; }
-.game .play { display: inline-block; margin-top: .9rem; font-size: .82rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #9a7b3f; }
+.game .play { display: inline-block; margin-top: .9rem; font-size: .82rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
 
 /* Empty state for sections without entries yet */
 .empty {
-  border: 1px dashed #d9d2c4; border-radius: 3px; background: #fcfbf8;
-  padding: 2rem 1.5rem; text-align: center; color: #8a8278;
+  border: 1px dashed var(--empty-border); border-radius: var(--radius); background: var(--empty-bg);
+  padding: 2rem 1.5rem; text-align: center; color: var(--muted);
 }
-.empty .soon { display: block; text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; color: #9a7b3f; font-weight: 600; margin-bottom: .5rem; }
+.empty .soon { display: block; text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; color: var(--accent); font-weight: 600; margin-bottom: .5rem; }
 
-.back { display: inline-block; margin-top: 2.5rem; color: #1a1717; text-decoration: none; font-size: .95rem; }
-.back:hover { color: #9a7b3f; }
+.back { display: inline-block; margin-top: 2.5rem; color: var(--link); text-decoration: none; font-size: .95rem; }
+.back:hover { color: var(--accent); }
 
-/* ---- Rendered blog post (Markdown → .article via marked.js) ---- */
-.article { font-size: 1.05rem; color: #2b2724; }
+/* Footer carries the theme label + cycle control (matches the home page). */
+.site-footer {
+  margin-top: 3.5rem; padding-top: 1.25rem; font-size: .85rem;
+  border-top: 1px solid var(--rule); color: var(--crumb);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem;
+}
+.shuffle { cursor: pointer; background: none; border: none; font: inherit; padding: 0; color: inherit; }
+.shuffle:hover { color: var(--accent); }
+
+/* ---- Rendered blog post (Markdown → .article via the bake step) ---- */
+.article { font-size: 1.05rem; color: var(--fg); }
 .article > h1:first-child {
-  font-family: Georgia, "Times New Roman", serif; font-weight: 600;
+  font-family: var(--font-display); font-weight: 600;
   font-size: 2.4rem; letter-spacing: -.01em; line-height: 1.15;
-  margin: 1.5rem 0 .3rem; color: #1a1717;
+  margin: 1.5rem 0 .3rem; color: var(--heading);
 }
-.article > h1:first-child + p { color: #8a8278; margin-top: 0; }  /* the NOTE line */
+.article > h1:first-child + p { color: var(--muted); margin-top: 0; }  /* the NOTE line */
 .article h2 {
-  font-family: Georgia, "Times New Roman", serif; font-weight: 600;
-  font-size: 1.5rem; margin: 2.4rem 0 .2rem; color: #1a1717;
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 1.5rem; margin: 2.4rem 0 .2rem; color: var(--heading);
 }
-.article h2::after { content: ""; display: block; width: 34px; height: 2px; background: #9a7b3f; margin-top: .5rem; }
-.article h3 { font-family: Georgia, serif; font-weight: 600; font-size: 1.2rem; margin: 1.8rem 0 .2rem; }
+.article h2::after { content: ""; display: block; width: 34px; height: 2px; background: var(--accent); margin-top: .5rem; }
+.article h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; margin: 1.8rem 0 .2rem; color: var(--heading); }
 .article p { margin: 1rem 0; }
 .article ul, .article ol { margin: 1rem 0; padding-left: 1.3rem; }
 .article li { margin: .3rem 0; }
-.article a { color: #1a1717; text-decoration: underline; text-decoration-color: #c9bfa6; text-underline-offset: 2px; }
-.article a:hover { text-decoration-color: #9a7b3f; }
+.article a { color: var(--link); text-decoration: underline; text-decoration-color: var(--accent-soft); text-underline-offset: 2px; }
+.article a:hover { text-decoration-color: var(--accent); }
 .article em { font-style: italic; }
 .article strong { font-weight: 700; }
 .article code {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .9em;
-  background: #efe9dd; padding: .1em .35em; border-radius: 3px;
+  background: var(--code-bg); padding: .1em .35em; border-radius: 3px;
 }
-.article pre { background: #2b2724; color: #f2efe8; padding: 1rem 1.1rem; border-radius: 4px; overflow-x: auto; }
+.article pre { background: var(--pre-bg); color: var(--pre-fg); padding: 1rem 1.1rem; border-radius: 4px; overflow-x: auto; }
 .article pre code { background: none; padding: 0; color: inherit; }
-.article hr { border: none; border-top: 1px solid #e0d9c9; margin: 2.2rem 0; }
-.article img { width: 100%; border-radius: 4px; margin: 1.4rem 0; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+.article hr { border: none; border-top: 1px solid var(--rule); margin: 2.2rem 0; }
+.article img { width: 100%; border-radius: var(--radius); margin: 1.4rem 0; box-shadow: var(--shadow); }
 /* A blockquote doubles as the "Generated by <model>" callout */
 .article blockquote {
   margin: 1.4rem 0; padding: .9rem 1.2rem;
-  border-left: 3px solid #9a7b3f; background: #fcfbf8; color: #5f5950; border-radius: 0 3px 3px 0;
+  border-left: 3px solid var(--accent); background: var(--quote-bg); color: var(--muted); border-radius: 0 3px 3px 0;
 }
 .article blockquote p { margin: .3rem 0; }
+/* A journal entry: a monospace weather header over the day's note */
+.article .journal {
+  margin: 1.4rem 0; padding: .85rem 1.15rem;
+  background: var(--quote-bg); border-left: 3px solid var(--accent); border-radius: 0 3px 3px 0;
+}
+.article .journal .head {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .8rem; letter-spacing: .01em; color: var(--muted); margin: 0;
+}
+.article .journal .body { margin: .5rem 0 0; font-style: italic; }
 
-.loading { color: #8a8278; }
+.loading { color: var(--muted); }

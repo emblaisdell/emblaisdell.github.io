@@ -4,9 +4,9 @@
 
 ## The Lamp
 
-In undergrad and grad school, students threw out perfectly good home furnishings when they moved.  This is how I became the proud owner of a warm color temperature lamp with a tasteful cubical fabric shade.
+In undergrad and grad school, students threw out perfectly good home furnishings when they moved.  This is how I became the proud owner of a lovely lamp with a tasteful cubical fabric shade.
 
-The cubical fabric shade was begging to become a [Minecraft redstone lamp](https://minecraft.wiki/w/Redstone_Lamp) and I was happy to oblige.
+The cubical shade was begging to become a [Minecraft redstone lamp](https://minecraft.wiki/w/Redstone_Lamp) and I was happy to oblige.
 
 ## Claude's Help
 
