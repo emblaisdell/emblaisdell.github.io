@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redstone Lamp — Eben Blaisdell</title>
+  <meta name="description" content="An upcycled lamp turned into a Minecraft redstone lamp — a laser-cut shade designed against the clock with Claude Code." />
+  <link rel="stylesheet" href="../../assets/section.css" />
+</head>
+<body>
+  <div class="wrap">
+    <a class="crumb" href="../">&larr; Projects</a>
+
+    <!-- Baked from redstone_lamp.md with marked. Re-bake after editing the Markdown. -->
+    <article class="article">
+      <h1>Redstone Lamp</h1>
+      <p><img src="redstone_lamp.jpg" alt="The finished lamp: a cubical shade laser-cut with the Minecraft redstone-lamp pixel pattern, glowing warm in a corner."></p>
+      <h2>The Lamp</h2>
+      <p>In undergrad and grad school, students threw out perfectly good home furnishings when they moved.  This is how I became the proud owner of a warm color temperature lamp with a tasteful cubical fabric shade.</p>
+      <p>The cubical fabric shade was begging to become a <a href="https://minecraft.wiki/w/Redstone_Lamp" target="_blank" rel="noopener">Minecraft redstone lamp</a> and I was happy to oblige.</p>
+      <h2>Claude&#39;s Help</h2>
+      <p>The most interesting part of the story is the design of the lasercutting files.  I had scheduled my trip to the lasercutter days in advance, but work kept me too busy to actually design the necessary SVG.</p>
+      <p>It felt like an action movie: 90 minutes on the clock, 2 SVG files to make, 1 metro to catch.</p>
+      <p>Why 2 files?  The lampshade is annoyingly not a cube; it is 10&quot;x10&quot;x11&quot;.  I needed one file for the top and bottom (cut twice) and one file for the sides (cut 4 times).</p>
+      <p>With limited time and my intermediate-at-best Inkscape acumen, I needed backup; I called in Claude Code.  I copied a JPG of the redstone lamp pixel art from the Minecraft game files, put it in a directory, described what I wanted in a markdown document, and told Claude to go.  After some serious fiddling and about 10 minutes, Claude had written a Python script which created an appropriately-scaled SVG of the top and sides (directly by string concatenation with no libraries; diabolical).</p>
+      <p>What came next was even more fiddling.  It took another hour to get <em>exactly</em> what I wanted.</p>
+      <p>There were places where <em>I was unimpressed</em>.  I solved one dovetailing bug in the Python myself because Claude (Opus 4.7) was taking much too long for a 2-character fix.</p>
+      <p>There were also places where <em>I was impressed</em>.  Claude looked at the files and noticed that my description left small cubes open in all 8 corners because all of the dovetails went outward.  I don&#39;t know if this is a common mistake well-represented in the training data or if LLMs are useful generally for this kind of reasoning.  But I do know that if I had designed this solely myself, it would be missing the 8 corners and be slightly worse.</p>
+      <p>Claude and I finished exactly on time; <a href="https://en.wikipedia.org/wiki/Parkinson%27s_law" target="_blank" rel="noopener">perhaps not coincidentally</a>.  It felt triumphant.</p>
+      <h2>Finishing</h2>
+      <p>The shade cover was cut from Lowe&#39;s fictitious &quot;Blondewood&quot; and stained with upcycled mahogany stain from the MakerSpace.</p>
+      <p>The final assembly was an unanticipated challenge; I needed a way to keep the shade cover square while the glue was drying, while not putting wet glue on the lamp.  Painter&#39;s tape and patience were the ultimate solution.</p>
+      <p>I used Titebond III for all but the bottom seams and used Elmer&#39;s glue for the bottom seams.  This detail is uninteresting to everyone except me in the future trying to disassemble this lamp shade cover.</p>
+    </article>
+
+    <a class="back" href="../">&larr; All projects</a>
+  </div>
+</body>
+</html>

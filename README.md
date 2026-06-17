@@ -20,11 +20,37 @@ Personally, I have lots of fun small ideas and love getting to make them. A samp
 
 ## Favorite Quotes
 
-The one by Whitehead about carefully using mental effort.
+The one by Whitehead about carefully using mental effort. (Whitehead is my academic
+great-grandfather, which the page now notes.)
 
-The one by Alan Watts about the world being fundamentally playful.
+The one by Alan Watts about the world being fundamentally playful. Candidates below
+(strongest first) — all from his recorded lectures, so wording varies slightly between
+transcripts:
 
-_(Currently the site renders only the Whitehead quote; the Watts quote is not yet on the page.)_
+1. **(Best fit — the "music" passage)**
+   > Existence is basically playful. There is no necessity for it whatsoever. It isn't
+   > going anywhere, that is to say, it doesn't have some destination that it ought to
+   > arrive at. It is best understood by analogy with music, because music, as an art
+   > form, is essentially playful. We say "you *play* the piano," you don't "work" the
+   > piano.
+   > — Alan Watts (lecture)
+
+2. **(Shorter, on work vs. play)**
+   > This is the real secret of life — to be completely engaged with what you are doing
+   > in the here and now. And instead of calling it work, realize it is play.
+   > — Alan Watts
+
+3. **(On the universe as play — "lila")**
+   > The universe is fundamentally at play. It is the dance of Shiva, the play of the
+   > divine, with no purpose beyond the dancing itself.
+   > — Alan Watts (paraphrase of his recurring theme drawn from the Hindu idea of *lila*)
+
+_Note: #1 and #2 are close to his actual recorded wording; #3 is a paraphrase of a theme
+he returned to often rather than a verbatim quote — verify against a transcript before
+publishing if exact attribution matters._
+
+_(Both quotes now render on the page: the Whitehead quote and Watts candidate #1, the
+"existence is basically playful" passage.)_
 
 ## Picture
 
@@ -63,8 +89,9 @@ Each game folder is a one-time snapshot of its source project, not a live sync.
 
 ### Legacy
 
-Earlier standalone pages (`eweek`, `humanturingmachine`, `ontolog`, `robotbeerpong`,
-`sequent`) were moved under `/legacy/` and are still reachable there.
+Earlier standalone pages (`eweek`, `humanturingmachine`, `robotbeerpong`, `sequent`) were
+moved under `/legacy/` and are still reachable there. (`ontolog` stays at the top level,
+`/ontolog/`, because other code references that original location.)
 
 
 ## Theming

@@ -47,6 +47,7 @@
     .soon { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
 
     blockquote { margin: 0; }
+    blockquote + blockquote { margin-top: 1.5rem; }
     blockquote cite { display: block; margin-top: .6rem; font-style: normal; }
 
     .site-footer {
@@ -219,7 +220,7 @@
     </section>
 
     <section id="quote">
-      <h2>Favorite quote</h2>
+      <h2>Favorite quotes</h2>
       <blockquote>
         &ldquo;It is a profoundly erroneous truism, repeated by all copy-books
         and by eminent people when they are making speeches, that we should
@@ -227,7 +228,16 @@
         opposite is the case. Civilization advances by extending the number of
         important operations which we can perform without thinking about
         them.&rdquo;
-        <cite>&mdash; Alfred North Whitehead, <i>An Introduction to Mathematics</i> (1911)</cite>
+        <cite>&mdash; Alfred North Whitehead (my academic great-grandfather), <i>An Introduction to Mathematics</i> (1911)</cite>
+      </blockquote>
+      <blockquote>
+        &ldquo;Existence is basically playful. There is no necessity for it
+        whatsoever. It isn&rsquo;t going anywhere, that is to say, it doesn&rsquo;t
+        have some destination that it ought to arrive at. It is best understood by
+        analogy with music, because music, as an art form, is essentially playful.
+        We say &ldquo;you <i>play</i> the piano,&rdquo; you don&rsquo;t
+        &ldquo;work&rdquo; the piano.&rdquo;
+        <cite>&mdash; Alan Watts</cite>
       </blockquote>
     </section>
 
@@ -277,7 +287,9 @@
         'photo_2026-06-16_17-40-49.jpg'
       ];
       var img = document.getElementById('portrait');
-      img.src = 'pics_of_me/' + PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
+      // Pre-sized 320px square thumbnails (Lanczos) so the browser only does a
+      // gentle final scale — much smoother than downscaling the full photo.
+      img.src = 'pics_of_me/thumbs/' + PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
 
       // ---- Theme label + manual shuffle ----------------------------------
       var THEMES = (document.documentElement.getAttribute('data-themes') || '').split(',');
