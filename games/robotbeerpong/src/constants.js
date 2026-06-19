@@ -79,7 +79,9 @@ export const COURT = {
   cupScale: 0.7,        // scale applied to cup.glb
   cupCatchRadius: 1.9,  // world units; how close to cup centre counts as a sink
   cupMouthHeight: 2.2,  // world units; cup rim height above table
-  backstopInset: 8,     // world units in front of each robot; sim ends at this z-plane
+  backstopInset: 4,     // world units in front of each robot; sim ends at this z-plane
+                        // (kept well behind the back cup row at z=20 so a bounce
+                        //  off a back cup can't push the ball through it)
 };
 
 // Rigid-body cup model. Each cup is a dynamic compound collider that matches
@@ -102,8 +104,8 @@ export const CUP_PHYS = {
 // a cup settles on contact instead of skipping back out.
 export const BALL_PHYS = {
   mass: 0.008,
-  restitution: 0.35,
-  friction: 0.4,
+  restitution: 0.55,
+  friction: 0.35,
 };
 
 // Contact tuning + when a ball counts as "settled in a cup".
@@ -112,7 +114,7 @@ export const PHYS = {
   maxSteps: 1200,      // ~10 s guard per throw
   restSpeed: 1.2,      // world u/s below which the ball is "at rest"
   restFrames: 30,      // consecutive at-rest frames -> settled
-  cupRestitution: 0.25, // moderate: a clean arc settles without skipping out
+  cupRestitution: 0.3,
   cupFriction: 0.5,
 };
 
