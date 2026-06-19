@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Shape Turret</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: crosshair;
+  }
+  #game {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+  /* Subtle pointer to the help screen */
+  #help-hint {
+    position: fixed;
+    top: 26px;
+    left: 14px;
+    color: rgba(255, 255, 255, 0.28);
+    font: 300 15px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 1px;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 10;
+  }
+  #help-hint:hover { color: rgba(255, 255, 255, 0.55); }
+
+  #help {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.86);
+    z-index: 20;
+    color: #d8e8e8;
+    font: 300 16px/1.6 "Helvetica Neue", Arial, sans-serif;
+    cursor: default;
+  }
+  #help.show { display: flex; }
+  #help .panel {
+    max-width: 620px;
+    padding: 8px 28px 28px;
+  }
+  #help h1 {
+    font-weight: 200;
+    letter-spacing: 2px;
+    color: #fff;
+  }
+  #help b.g { color: #5dffa0; }
+  #help b.c { color: #5de8ff; }
+  #help b.r { color: #ff6b6b; }
+  #help b.b { color: #6ba8ff; }
+  #help .close {
+    margin-top: 18px;
+    color: rgba(255,255,255,0.45);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="help-hint" title="Rules">Help</div>
+
+  <div id="help">
+    <div class="panel">
+      <h1>SHAPE TURRET</h1>
+      <p>Sides — not shape — are everything. The number of sides a polygon has is its
+      lives and its power.</p>
+      <p>You are the <b class="b">blue</b> turret at the bottom. Aim with the mouse or
+      your finger and <b>hold to fire</b> <b class="g">green</b> projectiles; let go to
+      stop.</p>
+      <p><b class="r">Red</b> polygons fall toward you. An <i>n</i>-gon that reaches you
+      costs you <i>n−2</i> sides. Each enemy you kill fills your white XP bars.</p>
+      <p>Shoot the <b class="g">green</b> shape (left) when your white bar is longer than
+      the green bar: spend the XP, grow the green bar, and add a side to your projectiles
+      (more damage).</p>
+      <p>Shoot the <b class="c">cyan</b> shape (right) when your white bar is longer than
+      the cyan bar: spend the XP, grow the cyan bar, and fire faster (an <i>n</i>-gon
+      cyan shape = <i>n</i> shots/second).</p>
+      <p>A bigger projectile pierces smaller enemies, carrying on with the sides it has
+      left.</p>
+      <p><b class="g">Win</b> when the green and cyan bars touch.
+      <b class="r">Lose</b> if your blue shape drops below 3 sides.</p>
+      <div class="close">Press <b>H</b> to close &middot; <b>M</b> to mute.</div>
+    </div>
+  </div>
+
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
