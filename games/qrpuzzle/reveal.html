@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Secret Code</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <style>
+      :root { color-scheme: dark; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        display: flex; align-items: center; justify-content: center;
+        background: #0d1117; color: #e6edf3;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        text-align: center; padding: 24px;
+      }
+      .card {
+        background: #161b22; border: 1px solid #30363d; border-radius: 16px;
+        padding: 40px 32px; max-width: 460px; box-shadow: 0 12px 40px rgba(0,0,0,.5);
+      }
+      h1 { font-size: 14px; letter-spacing: .2em; text-transform: uppercase; color: #7d8590; margin: 0 0 16px; }
+      .code { font-size: 40px; font-weight: 700; letter-spacing: .12em; color: #2f81f7; word-break: break-all; }
+      .muted { color: #7d8590; font-size: 13px; margin-top: 20px; line-height: 1.5; }
+      .nope { font-size: 30px; color: #f0883e; }
+      a { color: #2f81f7; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>QR Scavenger Hunt &mdash; Secret Code</h1>
+      <div id="out" class="code">&hellip;</div>
+      <p id="hint" class="muted"></p>
+    </div>
+    <script>
+      (function () {
+        var p = new URLSearchParams(location.search);
+        var c = p.get('c');
+        var out = document.getElementById('out');
+        var hint = document.getElementById('hint');
+        var valid = c && /^\d{10}$/.test(c);
+        var typeHint = 'Type this 10-digit code back into the game to unlock the next level.';
+
+        if (!valid) {
+          out.textContent = '—————';
+          out.className = 'code nope';
+          hint.textContent = 'No valid code in this link.';
+        } else if (p.get('hide') === '1') {
+          // "do not show": the page simply has no number. No hint — that's the puzzle.
+          out.textContent = 'No number here';
+          out.className = 'code nope';
+          hint.textContent = '';
+        } else if (p.get('rand') === '1') {
+          // "randomize": show a random number, presented exactly like a normal reveal.
+          var rnd = '';
+          for (var i = 0; i < 10; i++) rnd += Math.floor(Math.random() * 10);
+          out.textContent = rnd;
+          hint.textContent = typeHint;
+        } else {
+          out.textContent = c;
+          hint.textContent = typeHint;
+        }
+      })();
+    </script>
+  </body>
+</html>

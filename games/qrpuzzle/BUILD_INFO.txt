@@ -1,0 +1,4 @@
+BASE_URL=https://emblaisdell.github.io/games/qrpuzzle
+levels=19
+pad=32768
+built with build/build.mjs

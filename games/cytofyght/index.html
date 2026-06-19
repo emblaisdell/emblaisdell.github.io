@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon-BmjdTj7W.svg" />
+    <title>Cytofyght</title>
+    <style>
+      :root {
+        --bg: #05080d;
+        --ink: #c5d3e3;
+        --dim: #6c7c90;
+        --teamA: #35d6ff;
+        --teamB: #ffb000;
+        --cyan: #35e0ff;
+        --comment: #4d7d6a;
+        --line: #16222f;
+        --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 13px/1.5 var(--mono);
+        display: flex;
+      }
+
+      /* --- left panel: a PCB / control terminal --- */
+      #sidebar {
+        position: relative;
+        width: 340px;
+        flex: none;
+        padding: 22px 22px 18px;
+        overflow-y: auto;
+        background:
+          linear-gradient(180deg, #091018, #060a11);
+        border-right: 1px solid var(--line);
+        box-shadow: inset -1px 0 0 rgba(53, 224, 255, 0.10);
+      }
+      /* faint PCB grid + traces */
+      #sidebar::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.6;
+        background-image:
+          linear-gradient(rgba(53, 224, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(53, 224, 255, 0.035) 1px, transparent 1px);
+        background-size: 22px 22px, 22px 22px;
+      }
+      #sidebar > * { position: relative; }
+
+      /* --- title --- */
+      .brand { display: flex; align-items: center; gap: 12px; margin: 0 0 6px; }
+      .brand svg { flex: none; }
+      .brand h1 {
+        font: 700 21px/1 var(--mono);
+        letter-spacing: 2px;
+        margin: 0;
+        color: #eaf6ff;
+        text-transform: uppercase;
+      }
+      .brand h1 .y { color: var(--cyan); }
+      .tagline { color: var(--comment); font-size: 11px; margin: 0 0 20px; letter-spacing: 0.5px; }
+
+      /* --- sections as terminal blocks --- */
+      .section { margin-bottom: 18px; }
+      .section > .head {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        color: var(--cyan);
+        margin: 0 0 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section > .head::before { content: "//"; color: var(--comment); }
+      .section > .head::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: repeating-linear-gradient(90deg, var(--line) 0 4px, transparent 4px 8px);
+      }
+
+      .unit { margin-bottom: 13px; }
+      .unit .name {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 5px; color: var(--dim); font-size: 11px; letter-spacing: 0.06em;
+      }
+      .led { width: 9px; height: 9px; border-radius: 2px; box-shadow: 0 0 8px currentColor; }
+      .led.a { background: var(--teamA); color: var(--teamA); }
+      .led.b { background: var(--teamB); color: var(--teamB); }
+      .desc { color: var(--dim); font-size: 11.5px; min-height: 2.4em; }
+      .desc::before { content: "» "; color: var(--comment); }
+
+      label.cap { display: block; color: var(--dim); font-size: 10.5px; margin-bottom: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+      select, input {
+        width: 100%;
+        background: #04090f;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 8px 9px;
+        font: inherit;
+        transition: border-color 0.12s, box-shadow 0.12s;
+      }
+      select:focus, input:focus {
+        outline: none;
+        border-color: var(--cyan);
+        box-shadow: 0 0 0 2px rgba(53, 224, 255, 0.18);
+      }
+      /* strip the native number spinners */
+      input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+      input[type="number"]::-webkit-outer-spin-button,
+      input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+      .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+
+      button {
+        font: 600 12px/1 var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink);
+        background: #0c1622;
+        border: 1px solid #1d3043;
+        border-radius: 3px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
+      }
+      button:hover { background: #122236; border-color: #2a4660; color: #eaf6ff; }
+      button:active { transform: translateY(1px); }
+      button.grow { width: 100%; }
+      button.primary {
+        background: #06222b;
+        border: 1px solid var(--cyan);
+        color: var(--cyan);
+        box-shadow: 0 0 0 0 rgba(53,224,255,0.5);
+      }
+      button.primary:hover { background: #0a323f; box-shadow: 0 0 16px -2px rgba(53, 224, 255, 0.5); color: #d6f7ff; }
+      .btnrow { display: flex; gap: 9px; margin-top: 9px; }
+      .btnrow button { flex: 1; }
+
+      /* --- upload --- */
+      .upload {
+        border: 1px dashed #233a4e;
+        border-radius: 4px;
+        padding: 11px;
+        background: rgba(4, 10, 16, 0.5);
+      }
+      .upload p { margin: 0 0 9px; color: var(--dim); font-size: 11px; }
+      .upload code { color: var(--cyan); }
+      .upload .status { margin-top: 9px; font-size: 11px; min-height: 1.3em; }
+      .upload .status.ok { color: #46e0a0; }
+      .upload .status.err { color: var(--teamB); white-space: pre-wrap; }
+      .speclink { margin: 10px 0 0; color: var(--dim); font-size: 11px; }
+      .speclink a {
+        color: var(--cyan);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(53, 224, 255, 0.4);
+        cursor: pointer;
+      }
+      .speclink a:hover { border-bottom-color: var(--cyan); }
+
+      /* --- status readout --- */
+      .pop .legend { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+      .pop .legend b { color: #eaf6ff; }
+      .meter {
+        height: 12px; border-radius: 2px; overflow: hidden; display: flex;
+        background: #04090f; border: 1px solid var(--line);
+      }
+      .meter > span { height: 100%; transition: width 0.18s ease; }
+      .meter .a { background: linear-gradient(90deg, #169fce, var(--teamA)); }
+      .meter .b { background: linear-gradient(90deg, var(--teamB), #c77f00); }
+      .readout { margin-top: 9px; display: flex; gap: 18px; color: var(--dim); font-size: 11px; }
+      .readout b { color: var(--cyan); }
+      #winner { margin-top: 8px; min-height: 1.4em; font-weight: 700; color: var(--teamA); letter-spacing: 0.04em; }
+
+      .speedlab { display: flex; justify-content: space-between; color: var(--dim); font-size: 11px; margin-bottom: 5px; }
+      .speedlab b { color: var(--cyan); }
+      input[type="range"] { accent-color: var(--cyan); padding: 0; }
+
+      /* --- stage --- */
+      #stage {
+        position: relative;
+        flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px;
+        overflow: hidden;
+        background:
+          radial-gradient(60% 60% at 50% 45%, #0a1118, #05080d);
+      }
+      #stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(53, 224, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(53, 224, 255, 0.02) 1px, transparent 1px);
+        background-size: 30px 30px, 30px 30px;
+      }
+      canvas {
+        position: relative;
+        background: #04080c;
+        border-radius: 4px;
+        padding: 10px;
+        border: 1px solid #173143;
+        box-shadow: 0 0 0 1px rgba(53,224,255,0.12), 0 0 50px -10px rgba(53, 224, 255, 0.22);
+      }
+      .footnote { color: var(--comment); font-size: 10.5px; margin-top: 14px; letter-spacing: 0.04em; }
+    </style>
+    <script type="module" crossorigin src="./assets/index-BkYQ05PT.js"></script>
+  </head>
+  <body>
+    <aside id="sidebar">
+      <div class="brand">
+        <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="5" y="5" width="22" height="22" rx="3" fill="#0c1320" stroke="#1d3043" stroke-width="1"/>
+          <g fill="#3a4d61">
+            <rect x="9" y="1" width="2.2" height="3"/><rect x="15" y="1" width="2.2" height="3"/><rect x="21" y="1" width="2.2" height="3"/>
+            <rect x="9" y="28" width="2.2" height="3"/><rect x="15" y="28" width="2.2" height="3"/><rect x="21" y="28" width="2.2" height="3"/>
+            <rect x="1" y="9" width="3" height="2.2"/><rect x="1" y="15" width="3" height="2.2"/><rect x="1" y="21" width="3" height="2.2"/>
+            <rect x="28" y="9" width="3" height="2.2"/><rect x="28" y="15" width="3" height="2.2"/><rect x="28" y="21" width="3" height="2.2"/>
+          </g>
+          <rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1" fill="#35d6ff"/>
+          <rect x="17" y="17" width="6.5" height="6.5" rx="1" fill="#ffb000"/>
+          <rect x="17" y="8.5" width="6.5" height="6.5" rx="1" fill="none" stroke="#26384b" stroke-width="1"/>
+          <rect x="8.5" y="17" width="6.5" height="6.5" rx="1" fill="none" stroke="#26384b" stroke-width="1"/>
+        </svg>
+        <h1>Cyto<span class="y">fyght</span></h1>
+      </div>
+      <p class="tagline">RV32I combat arena · clock + memory constrained</p>
+
+      <div class="section">
+        <p class="head">programs</p>
+        <div class="unit">
+          <div class="name"><span class="led a"></span> BOT.A</div>
+          <select id="teamA"></select>
+          <div class="desc" id="descA"></div>
+        </div>
+        <div class="unit">
+          <div class="name"><span class="led b"></span> BOT.B</div>
+          <select id="teamB"></select>
+          <div class="desc" id="descB"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <p class="head">load custom</p>
+        <div class="upload">
+          <p>Compile your own RISC-V program (<code>.s</code>) and pit it against the built-in agents.</p>
+          <button class="grow" id="upload">Upload .S program…</button>
+          <input id="file" type="file" accept=".s,.asm,.txt,text/plain" hidden />
+          <div class="status" id="uploadStatus"></div>
+        </div>
+        <p class="speclink">See the <a href="#" id="downloadSpec" target="_blank" rel="noopener">full specification</a> for the instruction set and MMIO map.</p>
+      </div>
+
+      <div class="section">
+        <p class="head">arena config</p>
+        <div class="grid2">
+          <div><label class="cap">Seed</label><input id="seed" type="number" value="1" /></div>
+          <div><label class="cap">Units / bot</label><input id="count" type="number" value="24" min="1" /></div>
+          <div><label class="cap">Width</label><input id="width" type="number" value="32" min="2" /></div>
+          <div><label class="cap">Height</label><input id="height" type="number" value="32" min="1" /></div>
+        </div>
+        <div class="btnrow"><button class="primary grow" id="new">Deploy</button></div>
+        <div class="btnrow">
+          <button id="play">Run</button>
+          <button id="step">Step</button>
+        </div>
+        <div style="margin-top:12px">
+          <div class="speedlab"><span>CLOCK RATE</span><span><b id="speedval">10</b> turns/s</span></div>
+          <input id="speed" type="range" min="1" max="120" value="10" />
+        </div>
+      </div>
+
+      <div class="section pop">
+        <p class="head">status</p>
+        <div class="legend">
+          <span><span class="led a" style="display:inline-block;vertical-align:middle"></span> A · <b id="countA">0</b></span>
+          <span><b id="countB">0</b> · B <span class="led b" style="display:inline-block;vertical-align:middle"></span></span>
+        </div>
+        <div class="meter"><span class="a" id="barA"></span><span class="b" id="barB"></span></div>
+        <div class="readout"><span>TURN <b id="turn">0</b></span></div>
+        <div id="winner"></div>
+      </div>
+
+      <div class="footnote">cells execute real RISC-V; every clock cycle drains power.</div>
+    </aside>
+
+    <main id="stage"><canvas id="canvas"></canvas></main>
+
+  </body>
+</html>

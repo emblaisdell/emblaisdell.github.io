@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="4" fill="#05080d"/>
+  <!-- chip pins -->
+  <g fill="#5b6b7a">
+    <rect x="9"  y="1" width="2.4" height="3"/><rect x="14.8" y="1" width="2.4" height="3"/><rect x="20.6" y="1" width="2.4" height="3"/>
+    <rect x="9"  y="28" width="2.4" height="3"/><rect x="14.8" y="28" width="2.4" height="3"/><rect x="20.6" y="28" width="2.4" height="3"/>
+    <rect x="1" y="9" width="3" height="2.4"/><rect x="1" y="14.8" width="3" height="2.4"/><rect x="1" y="20.6" width="3" height="2.4"/>
+    <rect x="28" y="9" width="3" height="2.4"/><rect x="28" y="14.8" width="3" height="2.4"/><rect x="28" y="20.6" width="3" height="2.4"/>
+  </g>
+  <!-- die package -->
+  <rect x="5" y="5" width="22" height="22" rx="3" fill="#0c1320" stroke="#1b2a3d" stroke-width="1"/>
+  <!-- 2x2 core grid: 2 occupied (diagonal), 2 empty sockets -->
+  <rect x="8.5"  y="8.5"  width="6.5" height="6.5" rx="1.2" fill="#35d6ff"/>
+  <rect x="17"   y="17"   width="6.5" height="6.5" rx="1.2" fill="#ffb000"/>
+  <rect x="17"   y="8.5"  width="6.5" height="6.5" rx="1.2" fill="none" stroke="#26384b" stroke-width="1"/>
+  <rect x="8.5"  y="17"   width="6.5" height="6.5" rx="1.2" fill="none" stroke="#26384b" stroke-width="1"/>
+</svg>

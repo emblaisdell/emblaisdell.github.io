@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QR Scavenger Hunt</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <div id="loading-text">Loading…</div>
+    </div>
+
+    <header>
+      <h1>QR&nbsp;Scavenger&nbsp;Hunt</h1>
+    </header>
+
+    <main>
+      <section class="panel" id="left">
+        <p class="story" id="story"></p>
+
+        <div class="qr-wrap">
+          <canvas id="broken"></canvas>
+        </div>
+
+        <div class="code-entry" id="code-entry">
+          <label for="secret">Scan the fixed QR, then enter the 10-digit code:</label>
+          <div class="code-row">
+            <input id="secret" inputmode="numeric" autocomplete="off"
+                   placeholder="••••••••••" maxlength="10" />
+            <button class="primary" id="submit">Unlock</button>
+          </div>
+          <div class="feedback" id="feedback"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="right">
+        <div class="editor-head">
+          <h2 style="margin:0">Playground</h2>
+          <span class="spacer"></span>
+          <button id="reset-code">Reset</button>
+          <button class="success" id="run">Run ▶</button>
+        </div>
+        <div class="tabs" id="lang-tabs"></div>
+        <div class="pg-body" id="pg-body">
+          <div class="rt-overlay hidden" id="rt-loading">
+            <div class="spinner"></div>
+            <div id="rt-loading-text">Loading…</div>
+          </div>
+          <div class="editor-wrap">
+            <div class="gutter" id="gutter" aria-hidden="true">1</div>
+            <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          </div>
+          <div class="console" id="console"></div>
+
+          <div class="qr-wrap" id="fixed-wrap">
+            <canvas id="fixed"></canvas>
+          </div>
+        </div>
+
+        <details class="help">
+          <summary>How the playground works</summary>
+          <div class="help-body">
+            <p>Pick a language in the tabs above. <code>qr.current</code> is the broken QR as an
+            <code>(n, n, 3)</code> array of RGB values 0&ndash;255 (in JavaScript a nested array of
+            <code>[r,g,b]</code>; in Python a NumPy array; in Lua a 1-indexed table of
+            <code>{r,g,b}</code>). Black/white levels are just
+            <code>(0,0,0)</code> / <code>(255,255,255)</code>.</p>
+            <p>Repair it, then call <code>qr.show(result)</code> to draw the QR you can scan. An
+            <code>(n, n, 3)</code> array is drawn exactly as RGB; a 2D array also works (a 0/1 mask
+            or a 0&ndash;255 grayscale image).</p>
+            <p><code>qr.seen</code> is a list of every <em>previous</em> broken QR (oldest first);
+            <code>qr.seen[0]</code> is the very first code you saw &mdash; a handy reference.</p>
+            <p><kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>S</kbd> runs your code.</p>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <script type="module" src="js/game.js"></script>
+  </body>
+</html>
