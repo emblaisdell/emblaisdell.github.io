@@ -14,8 +14,9 @@ const CONFIG = {
   baseRadius: 17,          // radius of ordinary polygons (enemies)
 
   enemy: {
-    spawnRate: 2.0,        // mean spawns per second (Poisson process), constant
-    speed: 52,             // px/s, drifts toward the turret
+    spawnRate: 2.8,        // mean spawns per second (Poisson process), constant
+    speed: 52,             // px/s at the reference height, drifts toward turret
+    refHeight: 800,        // speed is scaled by (screen height / this)
     minSides: 3,
     // max sides an enemy can spawn with grows LINEARLY with time:
     sidesGrowthPerSec: 0.10,   // maxSides = minSides + t * this
@@ -28,7 +29,7 @@ const CONFIG = {
   },
 
   // Shots per second = (cyan shape's sides) * this factor.
-  fireRateFactor: 0.5,
+  fireRateFactor: 0.44,
 
   sideShape: {
     startSides: 3,         // green & cyan shapes both start as triangles
@@ -40,14 +41,15 @@ const CONFIG = {
   },
 
   // Bars & XP are measured as fractions of the canvas width.
-  // Tuned so the first upgrade costs ~5 kills and a full win takes ~460 kills,
+  // Tuned so the first upgrade costs ~5 kills and a full win takes ~500 kills,
   // with ~10 upgrades per side. Each kill is worth LESS than the starting bar,
   // so XP feels earned instead of overflowing. Deliberately lean: paired with
-  // the 2/sec spawn rate it's a close game that a sharp shooter just edges out.
+  // the ~2.8/sec spawn rate it's a close game that a sharp shooter just edges
+  // out (the screen genuinely floods near the crunch).
   bars: {
     startLen: 0.05,        // initial neon green / cyan bar length
     inc: 0.045,            // a bar grows by this much per upgrade (~10 upgrades/side)
-    xpPerKill: 0.011,      // each kill adds this to the white (XP) bars
+    xpPerKill: 0.010,      // each kill adds this to the white (XP) bars
   },
 
   // Visual thickness of the top bars (px).
@@ -64,7 +66,18 @@ const helpHint = document.getElementById("help-hint");
 
 let W = 0, H = 0, DPR = 1;
 
+// Touch devices get "tap" wording instead of mouse/keyboard wording.
+const IS_TOUCH = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+
+// On touch there's no keyboard, so swap the Help panel's "H to close / M to
+// mute" hint for a tap-friendly one (tapping the overlay already closes it).
+if (IS_TOUCH) {
+  const closeHint = helpEl.querySelector(".close");
+  if (closeHint) closeHint.textContent = "Tap anywhere to close.";
+}
+
 function resize() {
+  const prevW = W, prevH = H;
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
   H = window.innerHeight;
@@ -73,9 +86,48 @@ function resize() {
   canvas.style.width = W + "px";
   canvas.style.height = H + "px";
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  // Reflow the live scene so a mid-game resize (window drag, phone rotation)
+  // keeps everything proportional instead of stranding it off-screen.
+  if (player && prevW > 0 && prevH > 0 && (prevW !== W || prevH !== H)) {
+    rescaleScene(prevW, prevH);
+  }
+}
+
+// Map the running game onto the new viewport. x-coordinates and the width-
+// relative bars scale by the width ratio; y-coordinates by the height ratio.
+// The player and upgrade shapes are re-anchored from CONFIG so they stay
+// glued to the bottom-center and the side edges at any size.
+function rescaleScene(prevW, prevH) {
+  const rx = W / prevW, ry = H / prevH;
+
+  const pr = CONFIG.baseRadius * CONFIG.player.radiusFactor;
+  player.r = pr;
+  player.x = W / 2;
+  player.y = H - pr - 24;
+
+  const edge = CONFIG.sideShape.radius + CONFIG.sideShape.edgeMargin;
+  greenShape.x = edge;     greenShape.y = player.y;
+  cyanShape.x = W - edge;  cyanShape.y = player.y;
+
+  // greenFrac / cyanFrac / xpFrac are fractions of width — resolution-
+  // independent, so they need no adjustment here.
+
+  // Entities keep their pixel sizes (those are gameplay constants) but move to
+  // the equivalent spot on the new canvas.
+  for (const e of enemies) { e.x *= rx; e.y *= ry; }
+  for (const p of projectiles) { p.x *= rx; p.y *= ry; }  // speed/heading unchanged
+
+  aim.x *= rx; aim.y *= ry;
+
+  for (const m of motes) { m.x *= rx; m.y *= ry; }
 }
 window.addEventListener("resize", resize);
-resize();
+// Phone rotation: fire resize after the viewport dimensions have settled.
+window.addEventListener("orientationchange", () => setTimeout(resize, 100));
+// NOTE: the first resize() runs at the bottom, after the game-state variables
+// it reflows (player, enemies, ...) are declared — calling it here would hit
+// those `let`s in their temporal dead zone and throw.
 
 /* ----------------------------------------------------------------------- */
 /* Game state */
@@ -84,8 +136,11 @@ let state;        // "playing" | "won" | "lost"
 let time;         // seconds elapsed
 let player;       // { x, y, r, sides }
 let greenShape, cyanShape;
-let greenLen, cyanLen;   // neon bar lengths (px)
-let xp;                  // white bar length, shared (px)
+// Bars are stored as fractions of the screen width (0..1), so they're
+// resolution-independent: a resize needs no rescaling and the win condition is
+// simply greenFrac + cyanFrac >= 1. Pixels are derived only when drawing.
+let greenFrac, cyanFrac; // neon bar lengths, as a fraction of width
+let xpFrac;              // white (XP) bar length, shared, fraction of width
 let projectileSides;     // sides of projectiles fired now
 let enemies, projectiles, motes;
 let spawnTimer;
@@ -104,15 +159,15 @@ function reset() {
   greenShape = makeSideShape(edge, player.y, "#5dffa0");
   cyanShape = makeSideShape(W - edge, player.y, "#5de8ff");
 
-  greenLen = CONFIG.bars.startLen * W;
-  cyanLen = CONFIG.bars.startLen * W;
-  xp = 0;
+  greenFrac = CONFIG.bars.startLen;
+  cyanFrac = CONFIG.bars.startLen;
+  xpFrac = 0;
   projectileSides = CONFIG.projectile.startSides;
 
   enemies = [];
   projectiles = [];
   spawnTimer = nextSpawnDelay();
-  fireAcc = 0;
+  fireAcc = 1 / fireRate();            // start with one shot ready to go
   aim = { x: W / 2, y: 0 };           // aim straight up by default
   firing = false;
 
@@ -143,6 +198,12 @@ function currentMaxSides() {
 function fireRate() {
   // Cyan n-gon => n shots/second, scaled by a global tuning factor.
   return cyanShape.sides * CONFIG.fireRateFactor;
+}
+
+function enemySpeed() {
+  // Drift speed scales with screen height so enemies take about the same time
+  // to reach the turret on tall and short screens alike.
+  return CONFIG.enemy.speed * (H / CONFIG.enemy.refHeight);
 }
 
 /* ----------------------------------------------------------------------- */
@@ -181,8 +242,9 @@ function setAim(clientX, clientY) {
   aim.y = clientY;
 }
 function startFiring() {
+  // Just arm the trigger. Whether a shot goes off this instant is decided by
+  // the recharge in update(), so clicking fast can never beat the held rate.
   firing = true;
-  fireAcc = 1 / fireRate();           // fire one shot immediately
 }
 
 window.addEventListener("mousemove", (e) => setAim(e.clientX, e.clientY));
@@ -280,28 +342,28 @@ function projectileHitsEnemy(p, e) {
 
 function killEnemy(e) {
   e.dead = true;
-  xp += CONFIG.bars.xpPerKill * W;
+  xpFrac += CONFIG.bars.xpPerKill;
   Sound.kill(e.sides);
 }
 
 // Projectile hits a side (upgrade) shape. Always consumes the projectile.
 function projectileHitsSideShape(shape, isGreen) {
-  const barLen = isGreen ? greenLen : cyanLen;
-  if (xp > barLen) {
-    xp -= barLen;
+  const barFrac = isGreen ? greenFrac : cyanFrac;
+  if (xpFrac > barFrac) {
+    xpFrac -= barFrac;
     if (isGreen) {
-      greenLen += CONFIG.bars.inc * W;
+      greenFrac += CONFIG.bars.inc;
       greenShape.sides += 1;
       projectileSides += 1;           // projectiles gain a side going forward
     } else {
-      cyanLen += CONFIG.bars.inc * W;
+      cyanFrac += CONFIG.bars.inc;
       cyanShape.sides += 1;           // fire rate = cyan sides
     }
     shape.spinBoost = CONFIG.sideShape.boostTime;
     Sound.upgrade(isGreen);
     Sound.setProgress(greenShape.sides, cyanShape.sides);
   } else {
-    // If xp was too short, the projectile still vanishes but nothing happens.
+    // If XP was too short, the projectile still vanishes but nothing happens.
     Sound.fizzle();
   }
 }
@@ -319,16 +381,20 @@ function update(dt) {
     spawnTimer += nextSpawnDelay();
   }
 
-  // Fire only while the mouse button / touch is held.
+  // Fire only while the mouse button / touch is held. fireAcc carries over
+  // across presses: while held it accrues and fires at the full rate, but
+  // while idle it recharges to at most one ready shot. That cap is what stops
+  // rapid clicking from exceeding the held fire rate — every shot still has to
+  // wait one interval.
+  const interval = 1 / fireRate();
   if (firing) {
     fireAcc += dt;
-    const interval = 1 / fireRate();
     while (fireAcc >= interval) {
       fireProjectile();
       fireAcc -= interval;
     }
   } else {
-    fireAcc = 0;
+    fireAcc = Math.min(fireAcc + dt, interval);
   }
 
   // Side shapes spin (faster for a bit after a successful upgrade).
@@ -345,8 +411,9 @@ function update(dt) {
   for (const e of enemies) {
     let dx = player.x - e.x, dy = player.y - e.y;
     const len = Math.hypot(dx, dy) || 1;
-    e.x += (dx / len) * CONFIG.enemy.speed * dt;
-    e.y += (dy / len) * CONFIG.enemy.speed * dt;
+    const spd = enemySpeed();
+    e.x += (dx / len) * spd * dt;
+    e.y += (dy / len) * spd * dt;
     e.rot += 0.6 * dt;
     // Reached the turret? Hit when the bounding circles touch.
     if (len < e.r + player.r) {
@@ -387,7 +454,7 @@ function update(dt) {
   projectiles = projectiles.filter((p) => !p.dead);
 
   // Win when the green and cyan bars touch across the screen.
-  if (greenLen + cyanLen >= W) { state = "won"; Sound.win(); }
+  if (greenFrac + cyanFrac >= 1) { state = "won"; Sound.win(); }
 }
 
 function hits(a, b) {
@@ -428,6 +495,11 @@ function drawBars() {
   const bh = CONFIG.barHeight;
   const wbh = CONFIG.whiteBarHeight;
 
+  // Fractions -> pixels for this frame's width.
+  const greenLen = greenFrac * W;
+  const cyanLen = cyanFrac * W;
+  const xpLen = xpFrac * W;
+
   // Neon bars (top row): green grows from left, cyan grows from right.
   ctx.save();
   ctx.shadowBlur = 14;
@@ -445,8 +517,8 @@ function drawBars() {
   ctx.shadowBlur = 8;
   ctx.shadowColor = "#ffffff";
   ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.fillRect(0, bh, xp, wbh);
-  ctx.fillRect(W - xp, bh, xp, wbh);
+  ctx.fillRect(0, bh, xpLen, wbh);
+  ctx.fillRect(W - xpLen, bh, xpLen, wbh);
   ctx.restore();
 }
 
@@ -503,14 +575,40 @@ function drawEndScreen() {
   ctx.shadowColor = color;
   ctx.shadowBlur = 18;
   ctx.fillStyle = color;
-  ctx.font = '300 ' + Math.max(20, Math.min(40, W * 0.032)) + 'px "Helvetica Neue", Arial, sans-serif';
-  ctx.fillText(msg, W / 2, H / 2 - 10);
+  const fontSize = Math.max(20, Math.min(40, W * 0.032));
+  ctx.font = '300 ' + fontSize + 'px "Helvetica Neue", Arial, sans-serif';
+
+  // Wrap the message so it never runs off a narrow screen.
+  const lines = wrapText(msg, W * 0.9);
+  const lineHeight = fontSize * 1.25;
+  const top = H / 2 - 10 - (lines.length - 1) * lineHeight / 2;
+  lines.forEach((line, i) => ctx.fillText(line, W / 2, top + i * lineHeight));
 
   ctx.shadowBlur = 0;
   ctx.fillStyle = "rgba(255,255,255,0.5)";
   ctx.font = '300 16px "Helvetica Neue", Arial, sans-serif';
-  ctx.fillText("click or press R to play again", W / 2, H / 2 + 34);
+  const bottom = top + (lines.length - 1) * lineHeight;
+  const again = IS_TOUCH ? "tap to play again" : "click or press R to play again";
+  ctx.fillText(again, W / 2, bottom + 44);
   ctx.restore();
+}
+
+// Greedy word-wrap against the current ctx.font; returns an array of lines.
+function wrapText(text, maxWidth) {
+  const words = text.split(/\s+/);
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    const candidate = line ? line + " " + word : word;
+    if (line && ctx.measureText(candidate).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -531,5 +629,6 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+resize();   // sets W/H (and now safe to reflow, though there's nothing to yet)
 reset();
 requestAnimationFrame(frame);

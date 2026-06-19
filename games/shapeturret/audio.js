@@ -300,8 +300,41 @@ const Sound = (function () {
 
   /* ---- Control ---- */
 
+  // iOS routes Web Audio through the "ambient" session by default, which the
+  // physical mute switch silences. Playing a looping (silent) HTMLAudioElement
+  // promotes the page to the "playback" session, so our synthesized audio keeps
+  // sounding even with the ringer switched off. Must be kicked off from a user
+  // gesture, which unlock() always is.
+  let silenceEl = null;
+  function buildSilentWavUrl() {
+    const rate = 8000, samples = rate;            // ~1s of 16-bit mono silence
+    const buf = new ArrayBuffer(44 + samples * 2);
+    const view = new DataView(buf);
+    const str = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+    str(0, "RIFF"); view.setUint32(4, 36 + samples * 2, true); str(8, "WAVE");
+    str(12, "fmt "); view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+    view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true);
+    view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+    str(36, "data"); view.setUint32(40, samples * 2, true);   // samples stay zero
+    return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+  }
+  function enableSilentModePlayback() {
+    if (silenceEl) { silenceEl.play().catch(() => {}); return; }
+    try {
+      const el = new Audio();
+      el.src = buildSilentWavUrl();
+      el.loop = true;
+      el.setAttribute("playsinline", "");
+      el.playsInline = true;
+      el.play().catch(() => {});
+      silenceEl = el;
+    } catch (e) { /* no HTMLAudio available — ignore */ }
+  }
+
   function unlock() {
     ensure();
+    enableSilentModePlayback();
     if (!ctx) return;
     if (ctx.state === "suspended") ctx.resume();
     if (!started) { started = true; startMusic(); }

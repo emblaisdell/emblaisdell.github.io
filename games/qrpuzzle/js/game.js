@@ -14,7 +14,7 @@ const el = {
   story: $('story'), broken: $('broken'), fixed: $('fixed'), fixedWrap: $('fixed-wrap'),
   codeEntry: $('code-entry'), secret: $('secret'), submit: $('submit'), feedback: $('feedback'),
   code: $('code'), gutter: $('gutter'), console: $('console'), run: $('run'), resetCode: $('reset-code'),
-  right: $('right'),
+  right: $('right'), helpBody: $('help-body'),
   tabs: $('lang-tabs'), rtLoading: $('rt-loading'), rtLoadingText: $('rt-loading-text'),
 };
 
@@ -112,11 +112,15 @@ function buildTabs() {
 function setActiveTabUI() {
   for (const b of el.tabs.children) b.classList.toggle('active', b.dataset.id === activeId);
 }
+function updateHelp() {
+  el.helpBody.innerHTML = activeRt().help;
+}
 async function switchLang(id) {
   if (id === activeId) return;
   if (current && !current.terminal) setCode(current.id, activeId, el.code.value); // keep outgoing code
   activeId = id;
   setActiveTabUI();
+  updateHelp();
   if (current && !current.terminal)
     setEditor(getCode(current.id, id) ?? activeRt().defaultCode);
   await ensureActiveReady();
@@ -239,6 +243,7 @@ function wireEvents() {
 
 async function main() {
   buildTabs();
+  updateHelp();
   wireEvents();
   window.submit = submit;
   ensureActiveReady(); // JS is ready instantly; lazy runtimes load on tab select

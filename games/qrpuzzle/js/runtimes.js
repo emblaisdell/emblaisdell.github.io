@@ -74,6 +74,11 @@ export function createRuntimes(onFixed) {
       `// qr.current is the broken QR: an (n, n, 3) array of [r, g, b], values 0-255.\n` +
       `// qr.seen is a list of previous broken QRs; qr.show(result) draws the fixed QR.\n` +
       `const img = qr.current;\n\n// TODO: repair the QR, then show it so you can scan it.\n\nqr.show(img);\n`,
+    help:
+      `<p><code>qr.current</code> &mdash; the broken QR as an <code>(n, n, 3)</code> array of <code>[r, g, b]</code> values 0&ndash;255 (black/white modules are <code>[0,0,0]</code> / <code>[255,255,255]</code>). <code>qr.n</code> is its size.</p>` +
+      `<p><code>qr.seen</code> &mdash; an array of every previous broken QR, oldest first; <code>qr.seen[0]</code> is the first code you saw.</p>` +
+      `<p><code>qr.show(result)</code> &mdash; draws the QR to scan. Pass an <code>(n, n, 3)</code> array (RGB), or a 2-D array (a 0/1 mask or 0&ndash;255 grayscale).</p>` +
+      `<p><kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>S</kbd> runs your code.</p>`,
     async ensureReady() {},
     loadQR(cur, seen) { jsState = { cur, seen }; },
     async run(code) {
@@ -123,6 +128,11 @@ export function createRuntimes(onFixed) {
       `# qr.current is the broken QR as an (n, n, 3) RGB array, values 0-255.\n` +
       `# qr.seen is a list of previous broken QRs; qr.show(result) draws the fixed QR.\n` +
       `import numpy as np\n\nimg = qr.current\n\n# TODO: repair the QR, then show it so you can scan it.\n\nqr.show(img)\n`,
+    help:
+      `<p><code>qr.current</code> &mdash; the broken QR as an <code>(n, n, 3)</code> NumPy array of RGB values 0&ndash;255 (black/white modules are <code>(0,0,0)</code> / <code>(255,255,255)</code>). <code>qr.n</code> is its size.</p>` +
+      `<p><code>qr.seen</code> &mdash; a list of every previous broken QR, oldest first; <code>qr.seen[0]</code> is the first code you saw.</p>` +
+      `<p><code>qr.show(result)</code> &mdash; draws the QR to scan. Pass an <code>(n, n, 3)</code> array (RGB), or a 2-D array (a 0/1 mask or 0&ndash;255 grayscale).</p>` +
+      `<p><kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>S</kbd> runs your code.</p>`,
     // Memoized so switching tabs mid-load doesn't spin up a second worker.
     ensureReady(onProgress) {
       this._onProgress = onProgress;
@@ -176,6 +186,11 @@ export function createRuntimes(onFixed) {
       `-- qr.current is the broken QR: rows of {r, g, b} tables, 0-255 (tables are 1-indexed).\n` +
       `-- qr.seen is a list of previous broken QRs; qr.show(result) draws the fixed QR.\n` +
       `local img = qr.current\n\n-- TODO: repair the QR, then show it so you can scan it.\n\nqr.show(img)\n`,
+    help:
+      `<p><code>qr.current</code> &mdash; the broken QR as 1-indexed tables: <code>qr.current[y][x]</code> is <code>{r, g, b}</code>, values 0&ndash;255 (black/white modules are <code>{0,0,0}</code> / <code>{255,255,255}</code>). <code>qr.n</code> is its size.</p>` +
+      `<p><code>qr.seen</code> &mdash; a list of every previous broken QR, oldest first; <code>qr.seen[1]</code> is the first code you saw.</p>` +
+      `<p><code>qr.show(result)</code> &mdash; draws the QR to scan. Pass an <code>(n, n, 3)</code> table (RGB), or a 2-D table (a 0/1 mask or 0&ndash;255 grayscale). <code>print(...)</code> writes to the output.</p>` +
+      `<p><kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>S</kbd> runs your code.</p>`,
     // Memoized so switching tabs mid-load doesn't re-import wasmoon.
     ensureReady(onProgress) {
       this._onProgress = onProgress;
