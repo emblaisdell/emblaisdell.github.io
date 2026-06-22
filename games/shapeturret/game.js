@@ -55,6 +55,11 @@ const CONFIG = {
   // Visual thickness of the top bars (px).
   barHeight: 11,
   whiteBarHeight: 8,
+
+  // Seconds the win/lose screen must stay up before it can be dismissed. The
+  // "tap to play again" hint is hidden and taps are ignored until this elapses,
+  // so a stray click at the moment of victory/defeat doesn't skip the screen.
+  endScreenDelay: 2,
 };
 
 /* ----------------------------------------------------------------------- */
@@ -147,10 +152,12 @@ let spawnTimer;
 let fireAcc;
 let aim;          // { x, y }
 let firing;       // true only while the mouse button / touch is held
+let endElapsed;   // seconds the win/lose screen has been showing
 
 function reset() {
   state = "playing";
   time = 0;
+  endElapsed = 0;
   const pr = CONFIG.baseRadius * CONFIG.player.radiusFactor;
   player = { x: W / 2, y: H - pr - 24, r: pr, sides: CONFIG.player.startSides };
 
@@ -270,16 +277,21 @@ function toggleHelp(show) {
 }
 helpHint.addEventListener("click", () => toggleHelp(true));
 helpEl.addEventListener("click", () => toggleHelp(false));
+// The win/lose screen ignores input for its first CONFIG.endScreenDelay seconds
+// so it stays up long enough to read and a stray click can't skip it.
+function canDismissEndScreen() {
+  return state !== "playing" && endElapsed >= CONFIG.endScreenDelay;
+}
 window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (k === "h") toggleHelp();
   else if (k === "escape") toggleHelp(false);
   else if (k === "m") Sound.toggleMute();
-  else if (k === "r" && state !== "playing") reset();
+  else if (k === "r" && canDismissEndScreen()) reset();
 });
 // Restart on click when the game is over.
-window.addEventListener("mousedown", () => { if (state !== "playing") reset(); });
-window.addEventListener("touchend", () => { if (state !== "playing") reset(); });
+window.addEventListener("mousedown", () => { if (canDismissEndScreen()) reset(); });
+window.addEventListener("touchend", () => { if (canDismissEndScreen()) reset(); });
 
 /* ----------------------------------------------------------------------- */
 /* Spawning & firing */
@@ -584,12 +596,16 @@ function drawEndScreen() {
   const top = H / 2 - 10 - (lines.length - 1) * lineHeight / 2;
   lines.forEach((line, i) => ctx.fillText(line, W / 2, top + i * lineHeight));
 
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "rgba(255,255,255,0.5)";
-  ctx.font = '300 16px "Helvetica Neue", Arial, sans-serif';
-  const bottom = top + (lines.length - 1) * lineHeight;
-  const again = IS_TOUCH ? "tap to play again" : "click or press R to play again";
-  ctx.fillText(again, W / 2, bottom + 44);
+  // Hold the "play again" hint back until the screen has been up long enough
+  // that the accompanying taps/clicks are also being accepted.
+  if (canDismissEndScreen()) {
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.font = '300 16px "Helvetica Neue", Arial, sans-serif';
+    const bottom = top + (lines.length - 1) * lineHeight;
+    const again = IS_TOUCH ? "tap to play again" : "click or press R to play again";
+    ctx.fillText(again, W / 2, bottom + 44);
+  }
   ctx.restore();
 }
 
@@ -623,6 +639,8 @@ function frame(now) {
 
   if (state === "playing" && !helpEl.classList.contains("show")) {
     update(dt);
+  } else if (state !== "playing") {
+    endElapsed += dt;
   }
   updateMotes(dt);
   render();

@@ -158,7 +158,12 @@ const Sound = (function () {
 
     for (const spec of VOICE_SPECS) voices.push(buildVoice(spec, lp));
 
-    musicGain.gain.setTargetAtTime(0.16, now(), 2.5);
+    // Swell the pad in over ~1.2s — gentle, but clearly present right from the
+    // first interaction rather than taking ~10s to become audible.
+    const t0 = now();
+    musicGain.gain.cancelScheduledValues(t0);
+    musicGain.gain.setValueAtTime(0.0001, t0);
+    musicGain.gain.linearRampToValueAtTime(0.16, t0 + 1.2);
     applyChord(0);
     scheduleNextChord();
     scheduleMelody();
@@ -262,13 +267,13 @@ const Sound = (function () {
 
   function shoot(sides) {
     const f = 460 + Math.min(sides, 22) * 11;
-    blip(f, { type: "triangle", dur: 0.06, gain: 0.035, glide: f * 0.6 });
+    blip(f, { type: "triangle", dur: 0.06, gain: 0.07, glide: f * 0.6 });
   }
 
   function kill(sides) {
     const f = Math.max(170, 720 - sides * 13);   // bigger enemies ring lower
-    blip(f, { type: "sine", dur: 0.32, gain: 0.12 });
-    blip(f * 1.5, { type: "sine", dur: 0.4, gain: 0.05, when: 0.02 });
+    blip(f, { type: "sine", dur: 0.32, gain: 0.24 });
+    blip(f * 1.5, { type: "sine", dur: 0.4, gain: 0.10, when: 0.02 });
   }
 
   function upgrade(isGreen) {
@@ -282,8 +287,8 @@ const Sound = (function () {
   }
 
   function playerHit() {
-    blip(150, { type: "triangle", dur: 0.5, gain: 0.2, glide: 70 });
-    blip(90, { type: "sine", dur: 0.55, gain: 0.16, glide: 55, when: 0.02 });
+    blip(150, { type: "triangle", dur: 0.5, gain: 0.4, glide: 70 });
+    blip(90, { type: "sine", dur: 0.55, gain: 0.32, glide: 55, when: 0.02 });
   }
 
   function win() {

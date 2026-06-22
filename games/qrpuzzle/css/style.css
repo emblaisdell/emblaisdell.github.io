@@ -68,10 +68,7 @@ main {
 
 /* ---- left column ---- */
 .story {
-  font-size: 18px; font-weight: 500; line-height: 1.55; color: #f0f6fc;
-  margin: 0 0 18px; padding: 14px 16px;
-  border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
-  background: rgba(47, 129, 247, .08);
+  font-size: 16px; line-height: 1.55; color: var(--text); margin: 0 0 18px;
 }
 .qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .qr-wrap canvas {
@@ -164,6 +161,24 @@ details.help code { background: var(--panel-2); padding: 1px 5px; border-radius:
 
 .hidden { display: none !important; }
 .linkbtn { background: none; border: 0; color: var(--accent); cursor: pointer; font-size: 12px; padding: 0; }
+
+/* ---- "Access Granted" popup on a correct code ---- */
+.granted {
+  position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  background: rgba(3, 10, 6, .72); backdrop-filter: blur(2px);
+  animation: granted-fade .25s ease;
+}
+.granted-box {
+  font-family: var(--mono); font-weight: 800; font-size: clamp(26px, 7vw, 54px);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--accent-2);
+  padding: 24px 44px; border: 3px solid var(--accent-2); border-radius: 16px;
+  background: rgba(63, 185, 80, .1);
+  box-shadow: 0 0 50px rgba(63, 185, 80, .45), inset 0 0 32px rgba(63, 185, 80, .15);
+  text-shadow: 0 0 18px rgba(63, 185, 80, .6);
+  animation: granted-pop .4s cubic-bezier(.2, 1.5, .4, 1);
+}
+@keyframes granted-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes granted-pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* ---- message screen (single centered column) ---- */
 body.is-message main { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }

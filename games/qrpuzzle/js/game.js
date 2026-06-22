@@ -14,15 +14,24 @@ const el = {
   story: $('story'), broken: $('broken'), fixed: $('fixed'), fixedWrap: $('fixed-wrap'),
   codeEntry: $('code-entry'), secret: $('secret'), submit: $('submit'), feedback: $('feedback'),
   code: $('code'), gutter: $('gutter'), console: $('console'), run: $('run'), resetCode: $('reset-code'),
-  right: $('right'), helpBody: $('help-body'),
+  right: $('right'), helpBody: $('help-body'), granted: $('granted'),
   tabs: $('lang-tabs'), rtLoading: $('rt-loading'), rtLoadingText: $('rt-loading-text'),
 };
+
+// Brief celebratory "Access Granted" popup shown on a correct code.
+function showGranted() {
+  return new Promise((resolve) => {
+    el.granted.classList.remove('hidden');
+    setTimeout(() => { el.granted.classList.add('hidden'); resolve(); }, 1100);
+  });
+}
 
 let current = null; // current level object
 let history = []; // [{image, id}] of previous levels, oldest first -> qr.seen
 let currentImage = null; // displayToImage of the current level
 
-const onFixed = (pixels) => renderFixed(el.fixed, pixels);
+let shownThisRun = false; // did the run call qr.show (render a QR)?
+const onFixed = (pixels) => { shownThisRun = true; renderFixed(el.fixed, pixels); };
 const runtimes = createRuntimes(onFixed);
 let activeId = 'js'; // JavaScript is the default (native, no download)
 const activeRt = () => runtimes.map[activeId];
@@ -42,11 +51,13 @@ const saveSolutions = (arr) => localStorage.setItem(KEY_SOL, JSON.stringify(arr)
 const codeStore = () => {
   try { return JSON.parse(localStorage.getItem(KEY_CODE)) || {}; } catch { return {}; }
 };
-const codeKey = (id, lang) => id + ':' + lang;
-const getCode = (id, lang) => codeStore()[codeKey(id, lang)];
-const setCode = (id, lang, code) => {
-  const s = codeStore(); s[codeKey(id, lang)] = code; localStorage.setItem(KEY_CODE, JSON.stringify(s));
+// Code is stored per language (not per level), so it carries over from one QR
+// to the next and survives reloads.
+const getCode = (lang) => codeStore()[lang];
+const setCode = (lang, code) => {
+  const s = codeStore(); s[lang] = code; localStorage.setItem(KEY_CODE, JSON.stringify(s));
 };
+const persistCode = () => { if (current && !current.terminal) setCode(activeId, el.code.value); };
 
 // ---- editor ---------------------------------------------------------------
 function updateGutter() {
@@ -89,7 +100,7 @@ function renderLevel(level) {
   el.fixedWrap.classList.remove('hidden');
   el.right.classList.remove('hidden');
 
-  setEditor(getCode(level.id, activeId) ?? activeRt().defaultCode);
+  setEditor(getCode(activeId) ?? activeRt().defaultCode);
   el.console.textContent = '';
   el.feedback.textContent = '';
   el.feedback.className = 'feedback';
@@ -117,12 +128,12 @@ function updateHelp() {
 }
 async function switchLang(id) {
   if (id === activeId) return;
-  if (current && !current.terminal) setCode(current.id, activeId, el.code.value); // keep outgoing code
+  persistCode(); // save the outgoing language's code
   activeId = id;
   setActiveTabUI();
   updateHelp();
   if (current && !current.terminal)
-    setEditor(getCode(current.id, id) ?? activeRt().defaultCode);
+    setEditor(getCode(id) ?? activeRt().defaultCode);
   await ensureActiveReady();
 }
 
@@ -157,9 +168,10 @@ async function run() {
   const rt = activeRt();
   if (!rt.ready) { el.console.textContent = rt.label + ' is still loading…'; return; }
   rt.loadQR(currentImage, seenImages()); // restore pristine qr.current / qr.seen before running
-  setCode(current.id, activeId, el.code.value);
+  persistCode();
+  shownThisRun = false;
   const { ok, output } = await rt.run(el.code.value);
-  el.console.textContent = output || (ok ? '(no output)' : '');
+  el.console.textContent = output || (ok ? (shownThisRun ? '(no text output)' : '(no output)') : '');
   el.console.className = ok ? 'console' : 'console err';
 }
 
@@ -175,6 +187,7 @@ async function submit(code) {
     const sols = loadSolutions();
     sols.push(val);
     saveSolutions(sols);
+    await showGranted();
     await advanceTo(next);
   } catch {
     feedback('Incorrect code.', false);
@@ -222,8 +235,8 @@ async function replay(intro) {
 function wireEvents() {
   el.run.addEventListener('click', run);
   el.submit.addEventListener('click', submit);
-  el.resetCode.addEventListener('click', () => setEditor(activeRt().defaultCode));
-  el.code.addEventListener('input', updateGutter);
+  el.resetCode.addEventListener('click', () => { setEditor(activeRt().defaultCode); persistCode(); });
+  el.code.addEventListener('input', () => { updateGutter(); persistCode(); });
   el.code.addEventListener('scroll', () => { el.gutter.scrollTop = el.code.scrollTop; });
   el.secret.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
   document.addEventListener('keydown', (e) => {
@@ -237,6 +250,7 @@ function wireEvents() {
       el.code.value = el.code.value.slice(0, s) + '    ' + el.code.value.slice(en);
       el.code.selectionStart = el.code.selectionEnd = s + 4;
       updateGutter();
+      persistCode();
     }
   });
 }
