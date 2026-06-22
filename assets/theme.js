@@ -4,7 +4,7 @@
 // (theme-academic) stands.
 //
 // Behavior:
-//   • Fresh visit (new tab / no session)  → random theme.
+//   • Fresh visit (new tab / no session)  → academic theme (the default).
 //   • Navigating within the site          → same theme (kept in sessionStorage).
 //   • Refresh / reload                     → reshuffle to a new random theme.
 //   • "cycle theme" button                → step to the next theme, in order.
@@ -38,7 +38,7 @@
     write(theme);
   } else {
     theme = read();           // navigation within the session → keep
-    if (!theme) { theme = rand(); write(theme); }  // fresh visit → random
+    if (!theme) { theme = 'theme-academic'; write(theme); }  // fresh visit → academic
   }
   if (ORDER.indexOf(theme) < 0) theme = 'theme-academic';
   document.documentElement.className = theme;

@@ -264,7 +264,10 @@
 
   <script>
     (function () {
-      // ---- Random portrait on load ---------------------------------------
+      // ---- Portrait on load ----------------------------------------------
+      // First load of a session shows the Capitol photo (a deterministic first
+      // impression); later loads/reloads/navigation within the session shuffle.
+      var CAPITOL = 'photo_2026-06-16_17-38-52.jpg';   // Eben in front of the U.S. Capitol
       var PHOTOS = [
         'photo_2026-06-16_17-38-33.jpg',
         'photo_2026-06-16_17-38-36.jpg',
@@ -273,10 +276,20 @@
         'photo_2026-06-16_17-38-52.jpg',
         'photo_2026-06-16_17-40-49.jpg'
       ];
+      var SEEN_KEY = 'portrait-seen';
+      var seen = null;
+      try { seen = sessionStorage.getItem(SEEN_KEY); } catch (e) {}
+      var pick;
+      if (!seen) {
+        pick = CAPITOL;
+        try { sessionStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
+      } else {
+        pick = PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
+      }
       var img = document.getElementById('portrait');
       // Pre-sized 320px square thumbnails (Lanczos) so the browser only does a
       // gentle final scale — much smoother than downscaling the full photo.
-      img.src = 'pics_of_me/thumbs/' + PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
+      img.src = 'pics_of_me/thumbs/' + pick;
       // Theme persistence + the "cycle theme" control live in assets/theme.js.
     })();
   </script>
