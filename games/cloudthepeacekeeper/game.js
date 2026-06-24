@@ -9,8 +9,12 @@
 (() => {
   'use strict';
 
-  // ---- Virtual resolution (canvas is letterboxed by CSS) ----
-  const W = 1000;
+  // ---- Virtual resolution ----
+  // Desktop/Electron keeps the fixed 1000×600 (5:3) field. On a phone, the width
+  // is recomputed from the device's landscape aspect at game start (see chooseW),
+  // so the one-lane street fills a widescreen display instead of pillar-boxing.
+  // The vertical layout (H and the horizon/ground/cloud constants) never changes.
+  let W = 1000;
   const H = 600;
   const HORIZON_Y = 462;      // where sky meets grass; sun/moon rise/set here
   const GROUND_Y = 545;       // citizens' feet & the statue base rest here (down on the grass)
@@ -145,13 +149,22 @@
   // ---------------------------------------------------------------------------
   // Tunables
   // ---------------------------------------------------------------------------
-  const HIT_RADIUS = 22;       // direct-hit kill radius (x distance)
-  const NEAR_RADIUS = 84;      // near-miss scare radius
+  // ---- Touch / mobile adaptation ----
+  // A coarse pointer with no hover ⇒ a touch device (phone/tablet). The virtual
+  // resolution (1000×600) and every bit of gameplay math stay identical; mobile
+  // only bumps a few tunables so the people are finger-sized, their hitboxes
+  // track the bigger sprites, and the one-lane street is less crowded.
+  const isMobile =
+    matchMedia('(pointer: coarse)').matches && matchMedia('(hover: none)').matches;
+
+  const HIT_RADIUS = isMobile ? 30 : 22;       // direct-hit kill radius (x distance)
+  const NEAR_RADIUS = isMobile ? 100 : 84;     // near-miss scare radius
   const BODY_W = 28;
-  const TOUCH_X = 22;          // interaction x-overlap
+  const TOUCH_X = isMobile ? 28 : 22;          // interaction x-overlap
   const REVIVE_GRACE = 1.6;    // seconds a just-healed citizen can't be re-felled
   const ASSASSIN_COOLDOWN = 0.1; // brief recovery between an assassin's strikes
-  const CITIZEN_SCALE = 1.4;   // visual size of the people
+  const CITIZEN_SCALE = isMobile ? 2.0 : 1.4;  // visual size of the people
+  const SPAWN_MULT = isMobile ? 1.5 : 1;       // longer gaps between arrivals on small screens
   const BULLET_SPEED = 360;
   const BOOST_STEP = 0.65;  // each near miss adds this much speed multiplier...
   const BOOST_MAX = 5;      // ...up to this cap (keeps collisions from tunnelling)
@@ -165,7 +178,19 @@
   const Sound = (() => {
     let actx = null;
     let muted = false;
+    // iOS treats Web Audio as "ambient" sound, so the hardware silent switch
+    // mutes it. Declaring a "playback" audio session (Safari 16.4+) routes our
+    // SFX through the media category, which plays even in silent mode. The API
+    // is absent elsewhere, so this is a harmless no-op on other browsers.
+    const usesPlaybackSession = () => {
+      try {
+        if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+          navigator.audioSession.type = 'playback';
+        }
+      } catch (e) { /* ignore */ }
+    };
     const ensure = () => {
+      usesPlaybackSession();
       if (!actx) {
         try { actx = new (window.AudioContext || window.webkitAudioContext)(); }
         catch (e) { actx = null; }
@@ -195,22 +220,29 @@
       zap: () => { tone(140, 0.18, 'sawtooth', 0.16, 60); tone(900, 0.08, 'square', 0.06); },
       scare: () => tone(520, 0.12, 'triangle', 0.08, 760),
       heal: () => { tone(540, 0.16, 'sine', 0.14, 880); },
-      place: () => tone(180, 0.16, 'square', 0.16, 90),
+      // Block placed: a bright, rising major arpeggio (C–E–G) capped with a high
+      // octave sparkle — a small triumphant flourish for every piece set.
+      place: () => {
+        [523.25, 659.25, 783.99].forEach((f, i) =>
+          setTimeout(() => tone(f, i === 2 ? 0.24 : 0.11, 'triangle', 0.16), i * 60));
+        setTimeout(() => tone(1046.5, 0.2, 'sine', 0.06), 165); // octave sparkle on top
+      },
       combo: () => { tone(523, 0.12, 'triangle', 0.12); setTimeout(() => tone(784, 0.18, 'triangle', 0.12), 90); },
       shot: () => tone(220, 0.07, 'square', 0.08, 120),
       death: () => tone(160, 0.3, 'sawtooth', 0.12, 70),
-      // A felling by an assassin/bullet: a soft, dissonant, sinking "wound" tone —
-      // queasy and noticeable, but mellow (sine) rather than harsh or startling.
+      // (Swapped with evaporate) an assassin/bullet felling now gets the harsh,
+      // sinking knell — at half its former volume.
       harm: () => {
+        tone(330, 0.5, 'sawtooth', 0.09, 58);              // harsh descending body
+        tone(233, 0.5, 'square', 0.055, 47);               // grinding, dissonant undertone
+        setTimeout(() => tone(150, 0.34, 'sawtooth', 0.065, 42), 80); // a second downward bite
+      },
+      // (Swapped with harm) a citizen lost for good now gets the soft, dissonant,
+      // sinking "wound" tone — queasy and mellow rather than harsh.
+      evaporate: () => {
         tone(300, 0.34, 'sine', 0.13, 150);    // sinking body of the tone
         tone(212, 0.34, 'sine', 0.08, 112);    // tritone-ish undertone for unease
         tone(150, 0.22, 'triangle', 0.07, 96); // dull thud underneath
-      },
-      // A fallen body finally vanishing: a soft, whimsical upward "poof" that
-      // rises and thins out, like a little wisp evaporating into the sky.
-      evaporate: () => {
-        tone(520, 0.3, 'sine', 0.06, 1250);       // gentle rising whoosh
-        setTimeout(() => tone(1040, 0.16, 'triangle', 0.035, 1700), 70); // light shimmer on top
       },
       win: () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.3, 'triangle', 0.14), i * 130)); },
       lose: () => { [400, 320, 240, 160].forEach((f, i) => setTimeout(() => tone(f, 0.35, 'sawtooth', 0.14), i * 150)); },
@@ -222,6 +254,7 @@
   // ---------------------------------------------------------------------------
   let state = 'menu'; // menu | playing | paused | won | lost
   let G = null;       // active game object
+  let hudHit = [];    // on-canvas HUD control hitboxes (mobile pause/mute), virtual coords
 
   function weightedProfession(weights) {
     let total = 0;
@@ -264,7 +297,9 @@
           if (g[r][col] === '1') {
             const cx = left + (colOffset + col) * cell + cell / 2;
             const cy = baseY - (charH - 1 - r) * cell - cell / 2;
-            targets.push({ cx, cy, r });
+            // dx = x offset from field centre, so the statue can be re-centred for
+            // free if W changes (mobile viewport resize) by setting cx = W/2 + dx.
+            targets.push({ cx, cy, r, dx: cx - W / 2 });
           }
         }
       }
@@ -291,6 +326,7 @@
   function newGame(name, diffKey) {
     const diff = DIFFS[diffKey];
     const statue = buildStatue(name);
+    const spawnMean = diff.spawnMean * SPAWN_MULT; // fewer arrivals on small screens
     return {
       timeOfDay: 0.16,        // start mid-morning
       // Moon elongation from the sun, in radians. Random initial phase, then it
@@ -308,8 +344,9 @@
       particles: [],
       cloudX: W / 2,
       mouseX: W / 2,
-      spawnTimerL: expInterval(diff.spawnMean),
-      spawnTimerR: expInterval(diff.spawnMean),
+      spawnMean,
+      spawnTimerL: expInterval(spawnMean),
+      spawnTimerR: expInterval(spawnMean),
       survivalTimer: 0,
       combo: 0,
       builderQueue: 0,
@@ -449,12 +486,12 @@
     G.spawnTimerL -= dt;
     if (G.spawnTimerL <= 0) {
       spawnCitizen(weightedProfession(G.diff.threat), true);
-      G.spawnTimerL = expInterval(G.diff.spawnMean);
+      G.spawnTimerL = expInterval(G.spawnMean);
     }
     G.spawnTimerR -= dt;
     if (G.spawnTimerR <= 0) {
       spawnCitizen(weightedProfession(G.diff.threat), false);
-      G.spawnTimerR = expInterval(G.diff.spawnMean);
+      G.spawnTimerR = expInterval(G.spawnMean);
     }
 
     // --- Builder wave from combo ---
@@ -1038,18 +1075,20 @@
   function drawHUD() {
     ctx.save();
     ctx.textBaseline = 'middle';
-    const pad = 12, tagH = 40, tagY = 12;
-    const labelFont = `italic 13px ${HUD.serif}`;
-    const numFont = `700 22px ${HUD.serif}`;
-    const nameFont = `700 18px ${HUD.serif}`;
-    const statFont = `12px ${HUD.sans}`;
+    // On a phone the readouts are magnified so they stay legible at arm's length.
+    const k = isMobile ? 1.5 : 1;
+    const pad = 12 * k, tagH = 40 * k, tagY = 12 * k, edge = 14 * k;
+    const labelFont = `italic ${13 * k}px ${HUD.serif}`;
+    const numFont = `700 ${22 * k}px ${HUD.serif}`;
+    const nameFont = `700 ${18 * k}px ${HUD.serif}`;
+    const statFont = `${12 * k}px ${HUD.sans}`;
 
     // --- Tag A: combo count -------------------------------------------------
     const comboLabel = 'Combo';
     const comboNum = `${G.combo}×`;
     const lw = tw(comboLabel, labelFont);
     const nw = tw(comboNum, numFont);
-    const aW = pad * 2 + lw + 8 + nw, aX = 14;
+    const aW = pad * 2 + lw + 8 * k + nw, aX = edge;
     paperTag(aX, tagY, aW, tagH);
     const aMid = tagY + tagH / 2;
     ctx.textAlign = 'left';
@@ -1057,15 +1096,15 @@
     ctx.fillText(comboLabel, aX + pad, aMid);
     ctx.font = numFont;
     ctx.fillStyle = G.combo > 0 ? HUD.sun : HUD.inkSoft;
-    ctx.fillText(comboNum, aX + pad + lw + 8, aMid + 1);
+    ctx.fillText(comboNum, aX + pad + lw + 8 * k, aMid + 1);
 
     // --- Tag B: peace-streak gauge -----------------------------------------
-    const gaugeW = 150, bW = pad * 2 + gaugeW, bX = aX + aW + 10;
+    const gaugeW = 150 * k, bW = pad * 2 + gaugeW, bX = aX + aW + 10 * k;
     paperTag(bX, tagY, bW, tagH);
     ctx.font = labelFont; ctx.fillStyle = HUD.inkSoft;
-    ctx.fillText('peace streak', bX + pad, tagY + 13);
+    ctx.fillText('peace streak', bX + pad, tagY + 13 * k);
     // gauge track + grass fill, both ink-outlined like the menu chips
-    const gx = bX + pad, gy = tagY + 23, gh = 9;
+    const gx = bX + pad, gy = tagY + 23 * k, gh = 9 * k;
     ctx.fillStyle = HUD.paperDeep;
     roundRectPath(gx, gy, gaugeW, gh, 4); ctx.fill();
     const fw = gaugeW * Math.min(1, G.survivalTimer / G.diff.survivalInterval);
@@ -1076,21 +1115,41 @@
     ctx.lineWidth = 1.5; ctx.strokeStyle = HUD.ink;
     roundRectPath(gx, gy, gaugeW, gh, 4); ctx.stroke();
 
+    // --- Control tags (mobile): pause + mute, far right ---------------------
+    // Drawn as the same paper tags as the rest of the HUD (one coordinate space,
+    // one scale) and tap-tested in the pointerdown handler via hudHit.
+    let rightEdge = W - edge;          // where the name tag's right edge lands
+    if (isMobile) {
+      const btn = tagH, gap = 8 * k;   // square tags, same height as the readouts
+      const muteX = W - edge - btn;
+      const pauseX = muteX - gap - btn;
+      drawControlTag(pauseX, tagY, btn, 'pause');
+      drawControlTag(muteX, tagY, btn, 'mute');
+      hudHit = [
+        { id: 'pause', x: pauseX, y: tagY, w: btn, h: btn },
+        { id: 'mute', x: muteX, y: tagY, w: btn, h: btn },
+      ];
+      rightEdge = pauseX - gap;
+    }
+
     // --- Tag C: cloud name + tally (right) ----------------------------------
+    // The verbose saved/lost line is dropped on mobile to keep the tag compact.
     const total = G.statue.targets.length;
-    const statStr = `statue ${G.buildIndex}/${total}  ·  saved ${G.saves}  ·  lost ${G.casualties}`;
+    const statStr = isMobile
+      ? `statue ${G.buildIndex}/${total}`
+      : `statue ${G.buildIndex}/${total}  ·  saved ${G.saves}  ·  lost ${G.casualties}`;
     const cW = pad * 2 + Math.max(tw(G.name, nameFont), tw(statStr, statFont));
-    const cX = W - 14 - cW;
+    const cX = rightEdge - cW;
     paperTag(cX, tagY, cW, tagH);
     const cRight = cX + cW - pad;
     ctx.textAlign = 'right';
     ctx.font = nameFont; ctx.fillStyle = HUD.ink;
-    ctx.fillText(G.name, cRight, tagY + 13);
+    ctx.fillText(G.name, cRight, tagY + 13 * k);
     ctx.font = statFont; ctx.fillStyle = HUD.inkSoft;
-    ctx.fillText(statStr, cRight, tagY + 28);
+    ctx.fillText(statStr, cRight, tagY + 28 * k);
 
-    // --- muted: a small tag, only when relevant -----------------------------
-    if (Sound.isMuted()) {
+    // --- muted: a small centre tag for desktop (mobile shows it on the ♪ tag) -
+    if (Sound.isMuted() && !isMobile) {
       const mLabel = '♪ muted';
       const mW = pad * 2 + tw(mLabel, labelFont);
       const mX = (W - mW) / 2;
@@ -1098,6 +1157,48 @@
       ctx.textAlign = 'center';
       ctx.font = labelFont; ctx.fillStyle = HUD.storm;
       ctx.fillText(mLabel, mX + mW / 2, tagY + tagH / 2);
+    }
+    ctx.restore();
+  }
+
+  // A square HUD control tag with a drawn glyph (no emoji, stays crisp at scale).
+  // 'pause' shows ❚❚ while playing and ▶ while paused; 'mute' shows ♪ with a red
+  // slash when muted.
+  function drawControlTag(x, y, sz, kind) {
+    paperTag(x, y, sz, sz);
+    const cx = x + sz / 2, cy = y + sz / 2;
+    ctx.save();
+    if (kind === 'pause') {
+      ctx.fillStyle = HUD.ink;
+      if (state === 'paused') {
+        const r = sz * 0.2;
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.7, cy - r);
+        ctx.lineTo(cx - r * 0.7, cy + r);
+        ctx.lineTo(cx + r, cy);
+        ctx.closePath(); ctx.fill();
+      } else {
+        const bw = sz * 0.12, bh = sz * 0.36, g = sz * 0.09;
+        ctx.fillRect(cx - g - bw, cy - bh / 2, bw, bh);
+        ctx.fillRect(cx + g, cy - bh / 2, bw, bh);
+      }
+    } else { // mute
+      const muted = Sound.isMuted();
+      ctx.globalAlpha = muted ? 0.45 : 1;
+      ctx.fillStyle = HUD.ink;
+      ctx.font = `${Math.round(sz * 0.5)}px ${HUD.serif}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('♪', cx, cy + sz * 0.04);
+      if (muted) {
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = HUD.storm;
+        ctx.lineWidth = Math.max(2, sz * 0.06);
+        ctx.beginPath();
+        ctx.moveTo(x + sz * 0.24, y + sz * 0.24);
+        ctx.lineTo(x + sz * 0.76, y + sz * 0.76);
+        ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -1179,17 +1280,51 @@
     const rect = canvas.getBoundingClientRect();
     return ((evt.clientX - rect.left) / rect.width) * W;
   }
+  function canvasY(evt) {
+    const rect = canvas.getBoundingClientRect();
+    return ((evt.clientY - rect.top) / rect.height) * H;
+  }
 
-  canvas.addEventListener('mousemove', (e) => {
+  // Pointer Events unify mouse and touch: the cloud drifts to the pointer
+  // (hover on desktop, finger-drag on a phone) and a press/tap strikes lightning.
+  canvas.addEventListener('pointermove', (e) => {
     if (G) G.mouseX = Math.max(0, Math.min(W, canvasX(e)));
   });
-  canvas.addEventListener('mousedown', (e) => {
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault();           // suppress synthetic mouse events / scrolling on touch
     Sound.resume();
+    goFullscreen();               // best-effort, once, on touch (Android in-browser)
+    // On-canvas HUD controls take the tap before it becomes a lightning strike.
+    if (isMobile && hudHit.length) {
+      const vx = canvasX(e), vy = canvasY(e);
+      for (const b of hudHit) {
+        if (vx >= b.x && vx <= b.x + b.w && vy >= b.y && vy <= b.y + b.h) {
+          if (b.id === 'pause') togglePause();
+          else Sound.toggleMute();
+          return;
+        }
+      }
+    }
     if (state === 'playing') {
       G.mouseX = Math.max(0, Math.min(W, canvasX(e)));
       strike(G.mouseX);
     }
   });
+
+  // On a phone, try to hide the browser chrome on the first tap. iOS Safari has
+  // no element Fullscreen API (use Add to Home Screen instead), so this is a
+  // silent no-op there; on Android Chrome it goes edge-to-edge. Desktop is left
+  // alone so a click never yanks the whole page into fullscreen.
+  let fsTried = false;
+  function goFullscreen() {
+    if (fsTried || !isMobile) return;
+    fsTried = true;
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) { try { req.call(el); } catch (_) { /* ignore */ } }
+  }
+  // No long-press context menu interrupting play on touch.
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
@@ -1218,6 +1353,7 @@
     endTitle: document.getElementById('endTitle'),
     endBlurb: document.getElementById('endBlurb'),
     endStats: document.getElementById('endStats'),
+    rotate: document.getElementById('rotateNudge'),
   };
 
   function show(id, on) {
@@ -1226,10 +1362,10 @@
     if (el) el.classList.toggle('hidden', !on);
   }
 
-  // Name and busyness are chosen independently; both default to the medium choice.
-  let selectedName = 1;        // default: Cumulus (Medium)
+  // Name and busyness are chosen independently; both default to the easy choice.
+  let selectedName = 0;        // default: Bolt (Easy)
   let chosenName = CLOUD_NAMES[selectedName].name;
-  let chosenDiff = 'Normal';   // default busyness: Medium
+  let chosenDiff = 'Easy';     // default busyness: Easy (Calm streets)
 
   CLOUD_NAMES.forEach((entry, i) => {
     const b = document.createElement('div');
@@ -1272,7 +1408,15 @@
   function startGame() {
     const name = (els.customName.value.trim() || chosenName || 'Cirrus').slice(0, 16);
     chosenName = name;
+    // On a phone, widen the field to the screen's landscape aspect before the
+    // statue is laid out, and size the backing store to match.
+    if (isMobile) {
+      W = chooseW();
+      canvas.width = W;
+      canvas.height = H;
+    }
     G = newGame(name, chosenDiff);
+    fitCanvas();
     state = 'playing';
     show('menu', false);
     show('endScreen', false);
@@ -1309,4 +1453,100 @@
 
   els.startBtn.onclick = startGame;
   els.againBtn.onclick = () => { show('endScreen', false); show('menu', true); state = 'menu'; };
+
+  // ---------------------------------------------------------------------------
+  // Mobile canvas fit (fill a landscape phone; clear of chrome & notches)
+  // ---------------------------------------------------------------------------
+  // Read the live safe-area insets (exposed as CSS vars in styles.css).
+  function safeInsets() {
+    const cs = getComputedStyle(document.documentElement);
+    const px = (v) => parseFloat(cs.getPropertyValue(v)) || 0;
+    return { t: px('--sa-top'), r: px('--sa-right'), b: px('--sa-bottom'), l: px('--sa-left') };
+  }
+
+  // The usable visible rectangle = visual viewport minus the safe-area insets.
+  // visualViewport tracks the URL bar collapsing/expanding; insets dodge the notch.
+  function usableSize() {
+    const vv = window.visualViewport;
+    const s = safeInsets();
+    return {
+      w: Math.max(1, (vv ? vv.width : window.innerWidth) - s.l - s.r),
+      h: Math.max(1, (vv ? vv.height : window.innerHeight) - s.t - s.b),
+    };
+  }
+
+  // Pick a virtual width so the field's aspect matches the device's *landscape*
+  // aspect (long/short side), keeping H fixed. Clamped so it never gets narrower
+  // than the desktop field or absurdly wide on ultratall phones.
+  function chooseW() {
+    const { w, h } = usableSize();
+    return Math.round(H * Math.max(w, h) / Math.min(w, h)); // landscape aspect
+  }
+
+  // Fill the *entire* usable area — the visible viewport minus the URL bar and
+  // safe-area insets — with no letterbox and no distortion. H is fixed; the
+  // virtual width tracks the live aspect, and the statue (which stores an offset
+  // from centre) is re-centred for free when W changes.
+  function fitCanvas() {
+    if (!isMobile) return;
+    const vv = window.visualViewport;
+    const s = safeInsets();
+    const { w, h } = usableSize();
+    if (w <= h) return; // portrait: covered by the rotate nudge — leave as-is
+
+    const newW = Math.round(H * (w / h)); // backing-store aspect == visible aspect
+    if (newW !== W) {
+      W = newW;
+      canvas.width = W;
+      canvas.height = H;
+      if (G) {
+        for (const t of G.statue.targets) t.cx = W / 2 + t.dx; // keep it centred
+        G.stars = makeStars(G.stars.length);                   // refill across new width
+      }
+    }
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.style.left = ((vv ? vv.offsetLeft : 0) + s.l) + 'px';
+    canvas.style.top = ((vv ? vv.offsetTop : 0) + s.t) + 'px';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Touch controls & landscape nudge (mobile only)
+  // ---------------------------------------------------------------------------
+  function togglePause() {
+    if (state === 'playing') { state = 'paused'; show('pauseVeil', true); }
+    else if (state === 'paused' && !resumeAfterRotate) { state = 'playing'; show('pauseVeil', false); }
+  }
+
+  // When a phone is held upright, the lane is too narrow to play: nudge the
+  // player to turn sideways and auto-pause until they do (then resume).
+  let resumeAfterRotate = false;
+  function checkOrientation() {
+    if (!isMobile) return;
+    const portrait = matchMedia('(orientation: portrait)').matches;
+    els.rotate.classList.toggle('hidden', !portrait);
+    if (portrait && state === 'playing') {
+      state = 'paused';
+      resumeAfterRotate = true;
+    } else if (!portrait && state === 'paused' && resumeAfterRotate) {
+      state = 'playing';
+      resumeAfterRotate = false;
+    }
+  }
+
+  if (isMobile) {
+    // Tapping the pause veil resumes (there's no P key on a phone; pause/mute now
+    // live on the canvas HUD itself — see drawControlTag / the pointerdown hit-test).
+    els.pause.addEventListener('pointerdown', () => { if (!resumeAfterRotate) togglePause(); });
+
+    const onViewportChange = () => { checkOrientation(); fitCanvas(); };
+    matchMedia('(orientation: portrait)').addEventListener('change', onViewportChange);
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', onViewportChange);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitCanvas);
+      window.visualViewport.addEventListener('scroll', fitCanvas);
+    }
+    checkOrientation();
+  }
 })();

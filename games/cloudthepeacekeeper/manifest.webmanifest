@@ -1,0 +1,17 @@
+{
+  "name": "Cloud the Peacekeeper",
+  "short_name": "Cloud",
+  "description": "A peacekeeping arcade game — you are a cloud, and your only power is lightning. Keep the townsfolk alive.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#0b1026",
+  "theme_color": "#0b1026",
+  "icons": [
+    { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" },
+    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

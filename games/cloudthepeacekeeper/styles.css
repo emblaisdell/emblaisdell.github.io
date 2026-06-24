@@ -38,6 +38,13 @@
   --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
            Palatino, Georgia, "Times New Roman", serif;
   --sans:  ui-sans-serif, "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  /* Safe-area insets surfaced as variables so game.js can read them (it sizes
+     the canvas in JS). Need viewport-fit=cover on the viewport meta to be set. */
+  --sa-top:    env(safe-area-inset-top, 0px);
+  --sa-right:  env(safe-area-inset-right, 0px);
+  --sa-bottom: env(safe-area-inset-bottom, 0px);
+  --sa-left:   env(safe-area-inset-left, 0px);
 }
 
 * { box-sizing: border-box; }
@@ -49,7 +56,21 @@ html, body {
   color: var(--ink);
   font-family: var(--sans);
   overflow: hidden;
+  /* Stop rapid clicks / drags from selecting page text. Safari & iOS only
+     honour the -webkit- prefixed forms, so set both. */
+  -webkit-user-select: none;
   user-select: none;
+  -webkit-touch-callout: none;
+  /* Touch hygiene: no rubber-band scroll, no tap flash, no gesture zoom. */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+/* The name field is the one place text selection should still work. */
+#customName {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 #stage {
@@ -58,6 +79,10 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: none;
+  /* Keep the playfield clear of notches / rounded corners. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* Keep the 5:3 canvas aspect ratio while filling the window. */
@@ -68,6 +93,40 @@ html, body {
   display: block;
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
   cursor: crosshair;
+  touch-action: none;
+}
+
+/* On a touch device, game.js drives the canvas size/position (fixed, full-bleed,
+   fitted to the visual viewport & safe area). Drop the desktop letterbox sizing
+   and shadow so it can fill a landscape phone screen. */
+@media (pointer: coarse) and (hover: none) {
+  #game {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: auto;
+    height: auto;
+    box-shadow: none;
+    cursor: default;
+  }
+  /* Centre overlays within the always-visible (small) viewport so a card and its
+     button never end up underneath the URL bar. svh = toolbars-shown height.
+     The padding (screen-edge gap + notch/home-indicator insets) is built into the
+     overlay, and the card is capped at 100% of that padded box — so the modal is
+     sized to the space that's actually free and never needs scrolling to reach
+     its own edges. */
+  .overlay {
+    position: fixed;
+    top: 0;
+    bottom: auto;
+    height: 100svh;
+    padding:
+      calc(env(safe-area-inset-top) + 12px)
+      calc(env(safe-area-inset-right) + 12px)
+      calc(env(safe-area-inset-bottom) + 12px)
+      calc(env(safe-area-inset-left) + 12px);
+  }
+  .panel { max-height: 100%; }
 }
 
 /* ---- Overlay: a quiet vignette so the live sky still shows through ------ */
@@ -98,6 +157,8 @@ html, body {
   border-radius: var(--r-card);
   padding: 30px 32px 28px;
   box-shadow: 9px 10px 0 0 rgba(20, 22, 42, 0.55);
+  /* Re-enable vertical touch-scroll inside cards (the page itself is locked). */
+  touch-action: pan-y;
 }
 
 /* a faint top-edge highlight, like light catching the paper */
@@ -111,13 +172,41 @@ html, body {
   pointer-events: none;
 }
 
-.panel > * { position: relative; }
+/* Menu groups are invisible to layout by default, so the panel lays all of its
+   children out in one flex column. `order` preserves the desktop/portrait reading
+   order (title → intro → name → busyness → Drift in → how-to) even though the
+   Drift-in button lives in the intro group for the landscape two-column layout. */
+.menu-intro, .menu-form { display: contents; }
+
+#menu .panel { display: flex; flex-direction: column; gap: 18px; }
+#menu .menu-intro > *,
+#menu .menu-form > *,
+#menu .howto { margin-top: 0; margin-bottom: 0; }
+#menu .menu-intro h1 { order: 1; }
+#menu .menu-intro .blurb { order: 2; }
+#menu .menu-form .field:nth-of-type(1) { order: 3; }
+#menu .menu-form .field:nth-of-type(2) { order: 4; }
+#menu .menu-intro button.primary { order: 5; }
+#menu .howto { order: 6; }
+
+.panel > *,
+.menu-intro > *,
+.menu-form > * { position: relative; }
 
 .panel.small {
   width: min(340px, 90vw);
   text-align: center;
   padding: 26px 28px;
 }
+
+/* End screen (win/lose): a compact card centred in the overlay, never the whole
+   page — kept narrow and short on every screen, with its own scroll if needed. */
+#endScreen .panel {
+  width: min(380px, 88vw);
+  max-height: 86svh;
+  text-align: center;
+}
+#endScreen .stats { text-align: left; }
 
 /* ---- Display type ------------------------------------------------------- */
 h1 {
@@ -307,4 +396,92 @@ button.primary:active {
   font-family: var(--serif);
   font-weight: 700;
   color: var(--sun-deep);
+}
+
+/* ---- Rotate-to-landscape glyph ------------------------------------------ */
+.rotateGlyph {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 10px;
+  color: var(--sun-deep);
+  animation: rotateHint 1.8s var(--ease) infinite;
+}
+@keyframes rotateHint {
+  0%, 55%  { transform: rotate(0deg); }
+  78%, 100% { transform: rotate(90deg); }
+}
+
+/* ---- Short viewports (a phone in landscape): shrink the cards ------------ */
+@media (max-height: 480px) {
+  .panel { padding: 16px 22px 14px; max-height: 94svh; }
+  .panel.small { padding: 16px 22px; }
+  h1 { font-size: 26px; margin-bottom: 8px; }
+  .panel.small h1 { font-size: 22px; }
+  .blurb { font-size: 14px; line-height: 1.42; }
+  .field { margin: 12px 0; }
+  .field > label { font-size: 15px; margin-bottom: 7px; }
+  .choice { padding: 8px 10px; }
+  button.primary { margin-top: 11px; padding: 11px; font-size: 17px; }
+  .howto { margin-top: 12px; padding-top: 10px; }
+  .rotateGlyph { font-size: 40px; margin-bottom: 6px; }
+}
+
+/* ---- Intro UI on a landscape phone: a wider, two-column card -------------
+   Left third = title + intro text; right two-thirds = the Cloud-name and
+   Busyness pickers stacked vertically with the start button. The how-to spans
+   the full width beneath both columns. */
+@media (pointer: coarse) and (hover: none) and (orientation: landscape) {
+  /* width 100% = the padded overlay box, so the card already respects the
+     screen-edge / safe-area gap; max-height comes from .panel { max-height:100% }. */
+  #menu .panel {
+    width: min(680px, 100%);
+    flex-direction: row;          /* two columns instead of one stack */
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 18px;
+    row-gap: 0;
+    padding: 12px 16px;
+  }
+
+  /* Each wrapper becomes its own tight column (no grid row-coupling gaps). The
+     order rules above no longer apply once the children are grouped per wrapper. */
+  #menu .menu-intro {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 40%;                /* left: title + intro + how-to + Drift in */
+    min-width: 0;
+    gap: 6px;
+  }
+  #menu .menu-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;                      /* right: name + busyness, stacked */
+    min-width: 0;
+    gap: 9px;
+  }
+  #menu .menu-intro h1,
+  #menu .menu-intro .blurb,
+  #menu .menu-intro button.primary,
+  #menu .menu-form .field { order: 0; }
+
+  /* Squeeze hard so the whole card fits without scrolling. */
+  #menu .menu-intro h1 { font-size: 20px; margin-bottom: 0; }
+  #menu .blurb { font-size: 11.5px; line-height: 1.3; }
+  #menu .field { margin: 0; }
+  #menu .field > label { font-size: 13px; margin-bottom: 4px; }
+  #menu button.primary { font-size: 15px; padding: 8px; margin: 0; }
+  #menu .menu-intro .howto { order: 0; margin: 0; padding-top: 6px; font-size: 12px; }
+  #menu .howto summary { font-size: 13px; }
+
+  /* Compact chips: shrink to share a row instead of forcing tall wrapping. */
+  #menu .choices { gap: 6px; }
+  #menu .choice {
+    min-width: 0;
+    flex: 1 1 auto;
+    padding: 6px 7px;
+    min-height: 0;
+    font-size: 12px;
+  }
+  #menu .choice .sub { font-size: 9.5px; margin-top: 1px; }
+  #menu #customName { margin-top: 6px; padding: 7px 10px; font-size: 14px; }
 }
