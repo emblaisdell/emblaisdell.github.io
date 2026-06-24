@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <radialGradient id="felt" cx="50%" cy="0%" r="120%">
+      <stop offset="0%" stop-color="#0b6b3a"/>
+      <stop offset="100%" stop-color="#084d2a"/>
+    </radialGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f1d7a9"/>
+      <stop offset="45%" stop-color="#deb887"/>
+      <stop offset="100%" stop-color="#c2965d"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5"/>
+      <stop offset="26%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="66%" stop-color="#5a3d18" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#5a3d18" stop-opacity="0.32"/>
+    </linearGradient>
+    <pattern id="grain" width="3" height="3" patternTransform="rotate(112)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="3" stroke="#65431f" stroke-opacity="0.07" stroke-width="1"/>
+    </pattern>
+    <clipPath id="tileclip"><rect x="4.5" y="4.5" width="23" height="23" rx="4.6"/></clipPath>
+  </defs>
+
+  <!-- Green felt background with rounded corners -->
+  <rect x="0" y="0" width="32" height="32" rx="6" fill="url(#felt)"/>
+
+  <!-- Wooden tile (soft drop shadow first) -->
+  <rect x="4.5" y="5.2" width="23" height="23" rx="4.6" fill="#000000" opacity="0.22"/>
+  <rect x="4.5" y="4.5" width="23" height="23" rx="4.6" fill="url(#wood)"/>
+  <g clip-path="url(#tileclip)">
+    <rect x="4.5" y="4.5" width="23" height="23" fill="url(#grain)"/>
+    <rect x="4.5" y="4.5" width="23" height="23" fill="url(#sheen)"/>
+    <rect x="4.5" y="4.5" width="23" height="23" fill="url(#shade)"/>
+  </g>
+  <rect x="4.5" y="4.5" width="23" height="23" rx="4.6" fill="none"
+        stroke="#1a1208" stroke-opacity="0.5" stroke-width="0.8"/>
+
+  <!-- Letter -->
+  <text x="16.1" y="21.3" text-anchor="middle"
+        font-family="'Trebuchet MS', Helvetica, Arial, sans-serif" font-weight="700"
+        font-size="15.5" fill="#1a1208">B</text>
+</svg>
