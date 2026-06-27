@@ -129,7 +129,9 @@ a { color: inherit; }
   font-size: 2.4rem; letter-spacing: -.01em; line-height: 1.15;
   margin: 1.5rem 0 .3rem; color: var(--heading);
 }
-.article > h1:first-child + p { color: var(--muted); margin-top: 0; }  /* the NOTE line */
+/* The muted "NOTE line" / lede directly under the title — only LLM-Lensed posts
+   (class "llm-lens") want it; a plain post's first paragraph is body text. */
+.article.llm-lens > h1:first-child + p { color: var(--muted); margin-top: 0; }
 .article h2 {
   font-family: var(--font-display); font-weight: 600;
   font-size: 1.5rem; margin: 2.4rem 0 .2rem; color: var(--heading);
