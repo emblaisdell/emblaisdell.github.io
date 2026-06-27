@@ -196,7 +196,40 @@
 <body>
   <div class="wrap">
     <header class="hero">
-      <img class="portrait" id="portrait" alt="Photo of Eben Blaisdell" />
+      <img class="portrait" id="portrait" width="140" height="140"
+           fetchpriority="high" decoding="async" alt="Photo of Eben Blaisdell" />
+      <script>
+        (function () {
+          // ---- Portrait on load ----------------------------------------------
+          // Inline right after the <img> so the chosen thumb starts downloading
+          // during parse (not after the whole page) and only ONE src is ever set
+          // — no post-render swap/flash.  First load of a session shows the Capitol
+          // photo (a deterministic first impression); later loads/reloads/navigation
+          // within the session shuffle.
+          var CAPITOL = 'photo_2026-06-16_17-38-52.jpg';   // Eben in front of the U.S. Capitol
+          var PHOTOS = [
+            'photo_2026-06-16_17-38-33.jpg',
+            'photo_2026-06-16_17-38-36.jpg',
+            'photo_2026-06-16_17-38-40.jpg',
+            'photo_2026-06-16_17-38-45.jpg',
+            'photo_2026-06-16_17-38-52.jpg',
+            'photo_2026-06-16_17-40-49.jpg'
+          ];
+          var SEEN_KEY = 'portrait-seen';
+          var seen = null;
+          try { seen = sessionStorage.getItem(SEEN_KEY); } catch (e) {}
+          var pick;
+          if (!seen) {
+            pick = CAPITOL;
+            try { sessionStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
+          } else {
+            pick = PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
+          }
+          // Pre-sized 320px square thumbnails (Lanczos) so the browser only does a
+          // gentle final scale — much smoother than downscaling the full photo.
+          document.getElementById('portrait').src = 'pics_of_me/thumbs/' + pick;
+        })();
+      </script>
       <div class="hero-text">
         <h1>Eben Blaisdell</h1>
         <p class="subtitle">Mathematician&nbsp;|&nbsp;Maker</p>
@@ -261,37 +294,5 @@
       <button class="shuffle" id="theme-cycle" type="button" title="Switch to the next theme">&#8635; cycle theme</button>
     </footer>
   </div>
-
-  <script>
-    (function () {
-      // ---- Portrait on load ----------------------------------------------
-      // First load of a session shows the Capitol photo (a deterministic first
-      // impression); later loads/reloads/navigation within the session shuffle.
-      var CAPITOL = 'photo_2026-06-16_17-38-52.jpg';   // Eben in front of the U.S. Capitol
-      var PHOTOS = [
-        'photo_2026-06-16_17-38-33.jpg',
-        'photo_2026-06-16_17-38-36.jpg',
-        'photo_2026-06-16_17-38-40.jpg',
-        'photo_2026-06-16_17-38-45.jpg',
-        'photo_2026-06-16_17-38-52.jpg',
-        'photo_2026-06-16_17-40-49.jpg'
-      ];
-      var SEEN_KEY = 'portrait-seen';
-      var seen = null;
-      try { seen = sessionStorage.getItem(SEEN_KEY); } catch (e) {}
-      var pick;
-      if (!seen) {
-        pick = CAPITOL;
-        try { sessionStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
-      } else {
-        pick = PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
-      }
-      var img = document.getElementById('portrait');
-      // Pre-sized 320px square thumbnails (Lanczos) so the browser only does a
-      // gentle final scale — much smoother than downscaling the full photo.
-      img.src = 'pics_of_me/thumbs/' + pick;
-      // Theme persistence + the "cycle theme" control live in assets/theme.js.
-    })();
-  </script>
 </body>
 </html>
