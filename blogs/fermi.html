@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-academic">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ocean Primality and Log-Fermi — Eben Blaisdell</title>
+  <meta name="description" content="Fermi estimation has a flaw — good answers feel bad. Taking logarithms fixes it, and the Prime Number Theorem opens a new path: is the number of gallons in the oceans prime?" />
+  <script src="../assets/theme.js"></script>
+  <link rel="stylesheet" href="../assets/section.css" />
+</head>
+<body>
+  <div class="wrap">
+    <a class="crumb" href="../blogs/">&larr; Blog</a>
+
+    <article class="article">
+      <h1>Ocean Primality and Log-Fermi</h1>
+
+      <p>"Could the (rounded whole) number of gallons of water in the oceans be prime?"  Though
+      this question from my girlfriend sprang from pure curiosity, it connects well with, and
+      I'll argue improves upon, a long tradition of interview questions.</p>
+
+      <p>Interviews for technical positions mythically involve answering questions like "What
+      should you charge to clean every window in NYC?".  Such
+      <a href="https://en.wikipedia.org/wiki/Fermi_problem" target="_blank" rel="noopener">Fermi
+      problems</a> force the recipient to wisely pick intermediate values to approximate and to
+      quickly estimate the relative order of magnitude of related quantities.  I hear they're
+      still asked, but I've never been asked a question like this in an interview, even for a
+      quant finance firm.</p>
+
+      <p>There are issues with Fermi problems, beyond just the issues inherent to brainteasers as
+      an interview tool.  One central gripe is that good answers feel bad.  If I ask how many
+      grains of (dry) rice fit in a gallon, and you say 26,000 when the answer is 15,000, it
+      feels far off, even though this is geometrically a better estimate than could reasonably be
+      expected.  The point is to roughly estimate the order of magnitude, but when the answer is
+      given in absolute terms, the arithmetic difference dominates our mental assessment of
+      performance.</p>
+
+      <p>Then, hanging out one day, a friend asked "How many times do you need to fold a piece of
+      paper to reach the moon?".  This type of problem could reasonably be called
+      <em>Log-Fermi</em>.  We still estimate a rough order of magnitude, but then we take the
+      logarithm (base 2 in the paper folding case) before reporting a final answer.  The
+      logarithm turns the geometric differences into arithmetic differences and estimation errors
+      have a more representative feel.  I thought for a few minutes and answered my friend's
+      question "43".  The correct answer is 42 folds, and I was so proud of my answer.  My
+      original distance estimate was 2&times; off, but I was within 1 of the correct answer.
+      Loosely, Log-Fermi is more fun and more humane.</p>
+
+      <p>Months later, I was asked the original question by my girlfriend: "Could the (rounded
+      whole) number of gallons of water in the oceans be prime?".  Our gut reactions were "almost
+      certainly not"; the primes thin out further down the naturals.  Heck, there's already a 50%
+      chance it's just a multiple of 2!  There are about 3.53&#8202;&times;&#8202;10<sup>20</sup>
+      gallons of water in all oceans
+      (<a href="https://www.usgs.gov/water-science-school/science/how-much-water-there-earth" target="_blank" rel="noopener">source</a>).
+      In a Cramér-style model, there's a 2.66&#8202;&times;&#8202;10<sup>&minus;11</sup>
+      probability that this number is a square; lower probability than winning the lottery.</p>
+
+      <p>But primes are significantly more common than squares; a number <i>n</i> is prime in the
+      Cramér model with probability 1/ln(<i>n</i>).  We use this to calculate that, at any given
+      moment, the probability that the number of gallons of water in the ocean is prime is about
+      1/47.3 or 2.1%; this is higher than I expected!  In fact,
+      <a href="https://www.cambridge.org/core/journals/mathematika/article/on-the-distribution-of-primes-in-short-intervals/DCE557AC8750333E68426FCEEC11858C" target="_blank" rel="noopener">taking
+      into account the nonindependence of primes in an interval</a>, if the number of gallons in
+      the oceans fluctuates by &gt;550 gallons (a hot tub) in some time interval, then there's a
+      &gt;99.999% chance it takes on a prime number of gallons within that time.</p>
+
+      <p>While I was surprised by the high likelihood of ocean primality specifically, the point
+      isn't the magnitude; it's that the Prime Number Theorem gives us another approach to
+      Log-Fermi, one that is not length/distance-specific like folding a piece of paper.  We could
+      easily use it as a frame for problems about grains of sand, metro riders in a city, or stars
+      in the observable universe.</p>
+
+      <p>This post has two natural paths to Log-Fermi problems; are there more?  It's a fun
+      question I'll continue to mull over.</p>
+    </article>
+
+    <a class="back" href="../blogs/">&larr; All posts</a>
+
+    <footer class="site-footer">
+      <span id="theme-name">theme</span>
+      <button class="shuffle" id="theme-cycle" type="button" title="Switch to the next theme">&#8635; cycle theme</button>
+    </footer>
+  </div>
+</body>
+</html>
