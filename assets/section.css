@@ -168,4 +168,29 @@ a { color: inherit; }
 }
 .article .journal .body { margin: .5rem 0 0; font-style: italic; }
 
+/* Data tables (used in technical posts) */
+.article table {
+  border-collapse: collapse; width: 100%; margin: 1.4rem 0;
+  font-size: .92rem;
+}
+.article th, .article td {
+  border-bottom: 1px solid var(--rule); padding: .45rem .6rem; text-align: right;
+}
+.article th:first-child, .article td:first-child { text-align: left; }
+.article thead th { color: var(--heading); font-weight: 600; border-bottom: 2px solid var(--accent); }
+.article tbody tr:hover { background: var(--quote-bg); }
+.article td.num { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.article .caption { color: var(--muted); font-size: .9rem; margin: -.6rem 0 1.6rem; }
+
+/* Collapsible aside (e.g. the agent instructions) */
+.article details {
+  margin: 1.4rem 0; padding: .6rem 1.1rem;
+  border-left: 3px solid var(--accent-soft); background: var(--quote-bg); border-radius: 0 3px 3px 0;
+}
+.article details summary {
+  cursor: pointer; color: var(--heading); font-weight: 600;
+  font-family: var(--font-display);
+}
+.article details[open] summary { margin-bottom: .6rem; }
+
 .loading { color: var(--muted); }
