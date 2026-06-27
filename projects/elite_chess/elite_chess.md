@@ -8,7 +8,7 @@ Here are the STLs up front: [Download (ZIP)](Elite%20Chess%20STLs.zip).
 
 I was _seriously_ into chess puzzles.  [I still am, but I was too.](https://en.wikiquote.org/wiki/Mitch_Hedberg)  Chess.com unleashes a sensory barrage on the chess puzzler in the name of gamification (of chess (a game)).  My favorite part of this barrage is the visual design of their puzzle tiers.
 
-Chess.com puzzles operate on an XP->levels->tiers->prestiges->(maybe something else, I hope to never find out) system.  The tiers have names like "Wood", "Stone", "Bronze", "Silver", "Crystal", with consistent theming.  So you can probably guess that after Silver tier we have... "Elite" tier.
+Chess.com puzzles operate on an XP→levels→tiers→prestiges→(maybe something else, I hope to never find out) system.  The tiers have names like "Wood", "Stone", "Bronze", "Silver", "Crystal", with consistent theming.  So you can probably guess that after Silver tier we have... "Elite" tier.
 
 Forget the goofy name for a second, because the creation of Chess.com's Elite puzzle tier set off a causal chain resulting in Chess.com's graphic designers gifting the world this masterpiece:
 
