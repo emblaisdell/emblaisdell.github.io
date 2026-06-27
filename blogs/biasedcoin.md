@@ -1,6 +1,6 @@
-I want to research LLMs' computed probabilities in response to prompts with well-defined user-asserted probabilities.  Two goals are
+I want to research the probabilities LLMs compute in response to prompts that assert a well-defined probability.  Two goals are
 - determining how (and how well) textual-numerical values are reflected in logit values, and
-- find models' 'preferred temperatures', or exhibit their nonexistence.
+- finding models' 'preferred temperatures', or exhibiting their nonexistence.
 
 Consider, for example, the prompt
 
@@ -10,7 +10,7 @@ Flip the coin (H prob 0.75, T prob 0.25). Reply with one char.
 <|assistant|>
 ```
 
-For a given LLM and temperature, this will have some probability of "H" (or related variants) as the next token and some probability of "T".  These are unlikely to be exactly 75% and 25% and likely sum to less than 100%.  However, assuming the model's preferred outcome matches the context's more-likely outcome, there will be some temperature at which the ratio of probabilities is exactly correct.
+For a given LLM and temperature, the model assigns some probability to "H" (or related variants) as the next token and some to "T".  These are unlikely to be exactly 75% and 25% and likely sum to less than 100%.  However, assuming the model's preferred outcome matches the context's more-likely outcome, there will be some temperature at which the ratio of probabilities is exactly correct.
 
 I'm curious about the dynamics of all of this.
 

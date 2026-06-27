@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The Biased Coin — Eben Blaisdell</title>
+  <title>Biased Coin — Eben Blaisdell</title>
   <meta name="description" content="Do LLMs encode an asserted probability in their logits, and is there a preferred temperature? A CPU experiment on open-weight models, in the LLM-Lensed Iterative Blogging format." />
   <script src="../assets/theme.js"></script>
   <link rel="stylesheet" href="../assets/section.css" />
@@ -13,7 +13,7 @@
     <a class="crumb" href="../blogs/">&larr; Blog</a>
 
     <article class="article">
-      <h1>The Biased Coin</h1>
+      <h1>Biased Coin</h1>
 
       <blockquote>
         <p>This post is presented in the
@@ -25,11 +25,11 @@
       <h2>Summary</h2>
       <p><em>Written by hand.</em></p>
 
-      <p>I want to research LLMs' computed probabilities in response to prompts with
-      well-defined user-asserted probabilities.  Two goals are</p>
+      <p>I want to research the probabilities LLMs compute in response to prompts that assert a
+      well-defined probability.  Two goals are</p>
       <ul>
         <li>determining how (and how well) textual-numerical values are reflected in logit values, and</li>
-        <li>find models' 'preferred temperatures', or exhibit their nonexistence.</li>
+        <li>finding models' 'preferred temperatures', or exhibiting their nonexistence.</li>
       </ul>
 
       <p>Consider, for example, the prompt</p>
@@ -38,8 +38,8 @@
 Flip the coin (H prob 0.75, T prob 0.25). Reply with one char.
 &lt;|assistant|&gt;</code></pre>
 
-      <p>For a given LLM and temperature, this will have some probability of "H" (or related
-      variants) as the next token and some probability of "T".  These are unlikely to be
+      <p>For a given LLM and temperature, the model assigns some probability to "H" (or related
+      variants) as the next token and some to "T".  These are unlikely to be
       exactly 75% and 25% and likely sum to less than 100%.  However, assuming the model's
       preferred outcome matches the context's more-likely outcome, there will be some
       temperature at which the ratio of probabilities is exactly correct.</p>
@@ -63,20 +63,38 @@ Flip the coin (H prob 0.75, T prob 0.25). Reply with one char.
         <p>The text below is AI-generated from the summary above.</p>
       </blockquote>
 
-      <p>The premise is so clean it feels like it has to work. You tell a model that a coin
-      is biased <code>P(H) = 0.75</code>, you ask it for one character, and you read the
-      next-token distribution. Restrict it to the two tokens that matter and you have a
-      Bernoulli parameter staring back at you. It will not be exactly 0.75 &mdash; but logits
-      are made of softmax, and softmax has a temperature knob, so surely there is <em>some</em>
-      temperature that bends the model's <code>0.68</code> (or whatever it is) onto the
-      <code>0.75</code> you asked for. Do that across many probabilities and you have read a
-      model's private exchange rate between <em>words about chance</em> and <em>log-odds</em>.</p>
+      <p>You tell a model a coin is biased &mdash; <code>P(H) = 0.75</code> &mdash; ask it for
+      one character, and read the next-token distribution over <code>H</code> and <code>T</code>.
+      The result won't be exactly 0.75, but softmax has a temperature, so in principle some
+      temperature maps the model's number onto the one you asserted. Sweep the asserted
+      probability and you'd recover how the model converts <em>words about chance</em> into
+      <em>log-odds</em>. The two questions from the summary: how faithfully that conversion
+      happens, and whether a single "preferred temperature" exists. Mostly it doesn't work, and
+      the ways it fails are the interesting part.</p>
 
-      <p>That is the hypothesis. I ran it on four small open-weight instruct models on a
-      laptop CPU &mdash; <code>Qwen2.5-0.5B</code>, <code>Qwen2.5-1.5B</code>,
-      <code>TinyLlama-1.1B</code>, and <code>SmolLM2-360M</code> &mdash; because the whole
-      experiment is a single forward pass per prompt: render the chat template, run it once,
-      read the logits at the final position. No sampling, no generation, exact numbers.</p>
+      <p>The findings, before the details:</p>
+      <ul>
+        <li><strong>The asserted number barely registers.</strong> Three of the four models
+        have a logit gap that is essentially flat in the asserted probability
+        (R&sup2; &lt; 0.01): they encode a fixed preference for the <em>letter</em>
+        <code>H</code> (or <code>T</code>), not the probability you stated.</li>
+        <li><strong>Only the largest model tracks it, and only in the middle.</strong>
+        Qwen2.5-1.5B follows the asserted probability across roughly 0.3&ndash;0.9, then
+        collapses at the extremes &mdash; it returns 0.56 when told 0.95.</li>
+        <li><strong>Spelling beats value.</strong> At a fixed <code>0.75</code>, rewriting
+        "0.75" as "75%" or "three out of four" moves the implied confidence from 0.75 to 0.99.</li>
+        <li><strong>No preferred temperature exists.</strong> The matching temperature
+        <code>&tau;*</code> swings from <code>&minus;2.2</code> to <code>+3.2</code> across the
+        sweep even for the one model that listens, and runs to infinity for the uniform cases.</li>
+        <li><strong>Asked to be uniform, models return human bias.</strong> A "fair die"
+        collapses onto <strong>4</strong> (99%) and a "random digit" onto <strong>7</strong> (91%).</li>
+      </ul>
+
+      <p>Setup: four small open-weight instruct models &mdash; <code>Qwen2.5-0.5B</code>,
+      <code>Qwen2.5-1.5B</code>, <code>TinyLlama-1.1B</code>, <code>SmolLM2-360M</code> &mdash;
+      each probed with a single forward pass (render the chat template, read the logits at the
+      final position; no sampling, exact numbers), all on CPU. Code and raw results:
+      <a href="https://github.com/emblaisdell/llmbiasedcoin" target="_blank" rel="noopener">github.com/emblaisdell/llmbiasedcoin</a>.</p>
 
       <h3>The one piece of math you need</h3>
 
@@ -308,9 +326,8 @@ Flip the coin (H prob 0.75, T prob 0.25). Reply with one char.
 
       <hr />
 
-      <p class="caption">The probe is a single forward pass per prompt; all logits are exact,
-      computed on CPU from open weights. Code and raw results live in a separate
-      <code>llmbiasedcoin</code> repository.</p>
+      <p class="caption">Code and raw results:
+      <a href="https://github.com/emblaisdell/llmbiasedcoin" target="_blank" rel="noopener">github.com/emblaisdell/llmbiasedcoin</a>.</p>
     </article>
 
     <a class="back" href="../blogs/">&larr; All posts</a>
