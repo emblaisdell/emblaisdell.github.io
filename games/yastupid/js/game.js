@@ -219,6 +219,28 @@ function mergeSound() {
   o.connect(g).connect(lp).connect(ac.destination);
   o.start(t); o.stop(t + dur + 0.04);
 }
+// a clean melody note (warm triangle, soft attack/decay) at a time offset, for the win fanfare
+function tone(freq, delay, dur, vol) {
+  if (muted) return;
+  const ac = audio(); if (!ac) return;
+  const t = ac.currentTime + delay;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(ac.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+// win: a short triumphant rising major arpeggio (C-E-G-C) capped by a held top note
+function winSound() {
+  tone(523.25, 0.00, 0.16, 0.20);  // C5
+  tone(659.25, 0.11, 0.16, 0.20);  // E5
+  tone(783.99, 0.22, 0.16, 0.20);  // G5
+  tone(1046.50, 0.34, 0.55, 0.24); // C6 — held, the flourish
+  tone(783.99, 0.34, 0.55, 0.10);  // G5 under it for a fuller chord
+}
 
 /* ------------------------------ operations -------------------------------- */
 function split(ball) {
@@ -462,6 +484,7 @@ function removeSum(i) {
 function showWin() {
   el('winLine').textContent = `${config.s} → ${config.t} in ${moves} move${moves === 1 ? '' : 's'}.`;
   show('win');
+  winSound();
 }
 
 /* ------------------------------ UI wiring --------------------------------- */
