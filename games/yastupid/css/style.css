@@ -1,0 +1,166 @@
+/* ===========================================================================
+   Ya Stupid — styling. Going for subtle late-2000s / 2010s Flash-portal vibe:
+   parchment board, chunky beveled candy buttons, glossy tokens, rounded type.
+   =========================================================================== */
+:root{
+  --ink:#2c2418;
+  --ink-soft:#6b5d44;
+  --paper-line:rgba(120,96,52,.10);
+  --panel:#fff7e3;
+  --panel-edge:#caa86a;
+  --shadow:rgba(60,42,12,.30);
+  --blue-1:#74b6f2; --blue-2:#2f7fd6;
+  --blue-deep:#205ba6;
+  --gold-1:#ffd86b; --gold-2:#f0b429;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;height:100%;overflow:hidden;}
+body{
+  font-family:ui-rounded,"Trebuchet MS","Segoe UI",Verdana,system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(130% 120% at 50% -10%, #f6efd8 0%, #e8dcbd 55%, #d3c39a 100%);
+  -webkit-user-select:none;user-select:none;touch-action:none;
+  position:fixed;inset:0;
+}
+/* faint board grid + corner vignette, no images */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(0deg,  transparent 0 31px, var(--paper-line) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 31px, var(--paper-line) 31px 32px),
+    radial-gradient(120% 100% at 50% 40%, transparent 55%, rgba(70,48,12,.16) 100%);
+}
+
+#board{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;}
+
+/* ---------------- chunky beveled buttons (the nostalgic bit) -------------- */
+.btn,.icon-btn{
+  font-family:inherit;font-weight:800;color:#fff;cursor:pointer;
+  border:2px solid rgba(0,0,0,.26);border-radius:14px;
+  background:linear-gradient(180deg,var(--blue-1),var(--blue-2));
+  box-shadow:0 4px 0 var(--shadow), inset 0 2px 0 rgba(255,255,255,.40);
+  text-shadow:0 1px 0 rgba(0,0,0,.25);
+  transition:transform .06s ease, box-shadow .06s ease;
+}
+.btn{padding:11px 18px;font-size:16px;}
+.btn:active,.icon-btn:active{transform:translateY(3px);
+  box-shadow:0 1px 0 var(--shadow), inset 0 2px 0 rgba(255,255,255,.35);}
+.btn.blue,.icon-btn.blue{background:linear-gradient(180deg,var(--blue-1),var(--blue-2));}
+.btn.gray,.icon-btn.gray{
+  background:linear-gradient(180deg,#fffaee,#ece0c2);color:var(--ink);
+  border-color:var(--panel-edge);text-shadow:none;
+  box-shadow:0 4px 0 rgba(120,90,40,.30), inset 0 2px 0 rgba(255,255,255,.7);}
+.btn.gray:active,.icon-btn.gray:active{box-shadow:0 1px 0 rgba(120,90,40,.30), inset 0 2px 0 rgba(255,255,255,.6);}
+
+.icon-btn{
+  position:absolute;z-index:6;width:48px;height:48px;font-size:22px;line-height:1;
+  display:grid;place-items:center;border-radius:14px;
+}
+#menuBtn{top:calc(var(--safe-t) + 12px);left:12px;}
+#newBtn{top:calc(var(--safe-t) + 12px);right:12px;}
+#muteBtn{top:calc(var(--safe-t) + 12px);right:72px;}
+#muteBtn.muted{opacity:.7;}
+
+/* ----------------------------- goal plaque -------------------------------- */
+.plaque{
+  position:absolute;z-index:6;top:calc(var(--safe-t) + 8px);left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;line-height:1;
+  background:linear-gradient(180deg,var(--panel),#f3e7c6);
+  border:3px solid var(--panel-edge);border-radius:18px;padding:7px 22px 9px;
+  box-shadow:0 4px 0 rgba(120,90,40,.30), inset 0 2px 0 rgba(255,255,255,.7);
+}
+.goal-label{font-size:11px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin-top:3px;}
+.goal-num{font-size:34px;font-weight:900;color:var(--ink);
+  text-shadow:0 2px 0 rgba(255,255,255,.6), 0 3px 2px rgba(120,90,40,.25);}
+
+.readout{
+  position:absolute;z-index:6;left:50%;transform:translateX(-50%);
+  top:calc(var(--safe-t) + 108px);
+  font-size:13px;font-weight:700;color:var(--ink-soft);
+  background:rgba(255,247,225,.7);border:2px solid rgba(202,168,106,.6);
+  border-radius:999px;padding:5px 14px;}
+.readout b{color:var(--ink);}
+
+/* Advanced-mode legend of false sums, shown in ball form along the bottom. */
+.legend{
+  position:absolute;z-index:6;left:0;right:0;bottom:calc(var(--safe-b) + 8px);
+  display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;
+  padding:6px 10px;max-height:42vh;overflow-y:auto;}
+.legend.hidden{display:none;}
+.lg-chip{display:flex;align-items:center;gap:4px;flex:0 0 auto;
+  background:rgba(255,247,225,.82);border:2px solid var(--panel-edge);border-radius:14px;
+  padding:4px 6px 4px 8px;box-shadow:0 2px 0 rgba(120,90,40,.25);}
+.lg-ball{width:27px;height:27px;border-radius:50%;border:2px solid;display:grid;place-items:center;
+  font-size:12px;font-weight:900;color:#22150a;text-shadow:0 1px 0 rgba(255,255,255,.5);}
+.lg-sym{font-weight:900;color:var(--ink-soft);font-size:14px;padding:0 1px;}
+.lg-x{margin-left:3px;width:21px;height:21px;border-radius:7px;border:1px solid var(--panel-edge);
+  background:#fff;color:var(--ink-soft);font-weight:900;cursor:pointer;font-size:13px;line-height:1;padding:0;}
+.lg-x:disabled{opacity:.3;cursor:default;}
+.lg-add{flex:0 0 auto;width:36px;height:36px;border-radius:12px;border:2px solid rgba(0,0,0,.2);
+  background:linear-gradient(180deg,var(--blue-1),var(--blue-2));color:#fff;font-size:22px;font-weight:800;
+  line-height:1;cursor:pointer;box-shadow:0 3px 0 var(--shadow);}
+.lg-add:active{transform:translateY(2px);box-shadow:0 1px 0 var(--shadow);}
+.lg-add:disabled{opacity:.4;}
+
+.toast{
+  position:absolute;z-index:7;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--safe-b) + 78px);max-width:86vw;text-align:center;
+  font-size:13px;font-weight:700;color:var(--ink);
+  background:linear-gradient(180deg,var(--gold-1),var(--gold-2));
+  border:2px solid rgba(0,0,0,.2);border-radius:999px;padding:7px 16px;
+  box-shadow:0 3px 0 var(--shadow);opacity:0;transition:opacity .35s, transform .35s;
+  pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* ------------------------------ popovers ---------------------------------- */
+.scrim{position:absolute;inset:0;z-index:30;display:grid;place-items:center;
+  background:rgba(60,42,12,.40);padding:18px;animation:fade .2s ease;}
+.scrim.hidden{display:none;}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+.card{
+  position:relative;width:min(420px,100%);max-height:90vh;overflow:auto;
+  background:linear-gradient(180deg,#fffaee,#f3e7c6);
+  border:3px solid var(--panel-edge);border-radius:22px;padding:22px 20px 18px;
+  box-shadow:0 10px 0 rgba(120,90,40,.30), 0 18px 40px rgba(40,28,6,.45);
+  animation:rise .22s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes rise{from{transform:translateY(14px) scale(.97);opacity:.4}to{transform:none;opacity:1}}
+.x{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:10px;border:2px solid var(--panel-edge);
+  background:#fffaee;color:var(--ink-soft);font-weight:800;cursor:pointer;font-size:15px;}
+.x:active{transform:translateY(2px);}
+
+.title{margin:2px 0 0;text-align:center;font-size:40px;font-weight:900;letter-spacing:-.01em;
+  color:var(--blue-deep);}
+.sub{text-align:center;color:var(--ink-soft);margin:4px 0 16px;font-size:14px;font-weight:600;}
+
+.seg{display:flex;gap:6px;background:#e9dcbd;border:2px solid var(--panel-edge);
+  border-radius:14px;padding:5px;margin-bottom:16px;}
+.seg-btn{flex:1;border:0;background:transparent;color:var(--ink-soft);font-family:inherit;
+  font-weight:800;padding:9px;border-radius:10px;cursor:pointer;font-size:15px;}
+.seg-btn.active{color:#fff;background:linear-gradient(180deg,var(--blue-1),var(--blue-2));
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 2px 0 var(--shadow);}
+
+.help{font-size:13.5px;line-height:1.5;color:var(--ink);}
+.help p{margin:8px 0;}
+.help b{color:var(--blue-deep);}
+.rule{margin-top:12px !important;padding-top:10px;border-top:2px dashed rgba(202,168,106,.7);
+  color:var(--ink-soft);font-size:12.5px;font-weight:600;}
+
+.card-actions{display:flex;gap:10px;margin-top:16px;}
+.card-actions .btn{flex:1;}
+
+.win-card{text-align:center;}
+.burst{font-size:56px;animation:pop .5s cubic-bezier(.2,1.6,.4,1);}
+@keyframes pop{from{transform:scale(0) rotate(-25deg)}to{transform:scale(1) rotate(0)}}
+.win-card h2{margin:4px 0 2px;font-size:30px;color:var(--blue-deep);text-shadow:1px 1px 0 #fff;}
+.win-card .btn{margin-top:14px;width:100%;}
+
+@media (max-width:430px){
+  .goal-num{font-size:30px;}
+  .title{font-size:34px;}
+}
