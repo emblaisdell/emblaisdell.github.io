@@ -200,25 +200,25 @@ function blip(f0, f1, dur, vol) {
   o.connect(g).connect(ac.destination);
   o.start(t); o.stop(t + dur + 0.02);
 }
-// a soft, round "bloop" note: pure sine with a gentle attack, low-passed to keep it warm
-function note(freq, delay, dur, vol) {
+function popSound()   { blip(380, 920, 0.09, 0.22); }   // split: light upward "pop"
+// fuse: a "reverse pop" / suction — pitch slurps upward as the sound swells in, then snaps off
+function mergeSound() {
   if (muted) return;
   const ac = audio(); if (!ac) return;
-  const t = ac.currentTime + delay;
+  const t = ac.currentTime, dur = 0.20;
   const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
   o.type = 'sine';
-  o.frequency.setValueAtTime(freq * 0.92, t);
-  o.frequency.exponentialRampToValueAtTime(freq, t + 0.05);   // tiny upward bloop, not a flat bell
-  lp.type = 'lowpass'; lp.frequency.value = 1100; lp.Q.value = 0.6;
+  o.frequency.setValueAtTime(180, t);
+  o.frequency.exponentialRampToValueAtTime(700, t + dur);              // upward slurp (pulled together)
+  lp.type = 'lowpass'; lp.Q.value = 0.7;
+  lp.frequency.setValueAtTime(400, t);
+  lp.frequency.exponentialRampToValueAtTime(2200, t + dur);            // filter opens — the "schlooop"
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(vol, t + 0.03);          // softer attack tames the "ding"
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  g.gain.exponentialRampToValueAtTime(0.26, t + dur * 0.9);            // swell in — reverse of a pop
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.015);        // then snap off
   o.connect(g).connect(lp).connect(ac.destination);
-  o.start(t); o.stop(t + dur + 0.02);
+  o.start(t); o.stop(t + dur + 0.04);
 }
-function popSound()   { blip(380, 920, 0.09, 0.22); }   // split: light upward "pop"
-// fuse: a single soft note that bloops upward — two becoming one, in one breath
-function mergeSound() { note(440.00, 0, 0.24, 0.23); }
 
 /* ------------------------------ operations -------------------------------- */
 function split(ball) {
