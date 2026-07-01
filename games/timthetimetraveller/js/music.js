@@ -47,12 +47,29 @@ export class Music {
 
   start() {
     if (this.started) return;
-    this.sound.ensure();
-    this.ctx = this.sound.ctx;
-    if (!this.ctx) return;       // no Web Audio -> silently do nothing
+    const ctx = this.sound.ensure();
+    if (!ctx) return;            // no Web Audio -> silently do nothing
     this.started = true;
-    const ctx = this.ctx;
+    // If iOS tears the shared context down and Sound rebuilds it, rebuild our
+    // graph onto the new one too (the running scheduler just picks up this.ctx).
+    this.sound.onContext = () => this.rebuild();
+    this.ctx = ctx;
+    this.buildGraph();
+    this.timer = setInterval(() => this.schedule(), 25);
+  }
 
+  // Re-point at the shared context and rebuild the graph (on start, or after the
+  // context was closed and recreated). Old nodes belong to the dead context and
+  // are dropped for GC.
+  rebuild() {
+    if (!this.started || !this.sound.ctx) return;
+    this.ctx = this.sound.ctx;
+    this.buildGraph();
+  }
+
+  // Construct the persistent audio graph on this.ctx, wired into sound.master.
+  buildGraph() {
+    const ctx = this.ctx;
     this.out = ctx.createGain(); this.out.gain.value = 0;
     this.out.connect(this.sound.master);
 
@@ -84,7 +101,6 @@ export class Music {
 
     this.applyGain();
     this.nextStepTime = ctx.currentTime + 0.1;
-    this.timer = setInterval(() => this.schedule(), 25);
   }
 
   // --- external controls -------------------------------------------------

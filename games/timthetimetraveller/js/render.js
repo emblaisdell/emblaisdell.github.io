@@ -613,29 +613,24 @@ export class Renderer {
   drawOrb(cx, cy, col, scale = 1) {
     const ctx = this.ctx;
     const r = VORTEX_R * CELL * scale;
-    // A softer glow: smaller halo, gentler pulse, and a translucent (not pure
-    // white) core so the orb reads as a subtle wisp rather than a bright bloom.
-    const pulse = 1 + 0.06 * Math.sin(this.t * 5);
-    const R = r * 1.35 * pulse;
-    const grd = ctx.createRadialGradient(cx, cy, 1, cx, cy, R);
-    grd.addColorStop(0, 'rgba(255,255,255,0.55)');
-    grd.addColorStop(0.32, col);
+    // Bright "popping" orb: a white-hot core blooming out to the colour, with
+    // three swirling rings -- the same look as the time-travel button.
+    const pulse = 1 + 0.12 * Math.sin(this.t * 5);
+    const grd = ctx.createRadialGradient(cx, cy, 1, cx, cy, r * 1.8 * pulse);
+    grd.addColorStop(0, '#ffffff');
+    grd.addColorStop(0.3, col);
     grd.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.save();
-    ctx.globalAlpha = 0.8;
     ctx.fillStyle = grd;
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill();
-    // Two faint swirling rings instead of three bright ones.
-    ctx.globalAlpha = 0.45;
+    ctx.beginPath(); ctx.arc(cx, cy, r * 1.8 * pulse, 0, 7); ctx.fill();
+    // swirling rings
     ctx.strokeStyle = col;
-    ctx.lineWidth = 1.4;
-    for (let i = 0; i < 2; i++) {
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
       ctx.beginPath();
-      const a = this.t * 2.4 + i * 2.6;
-      ctx.arc(cx, cy, r * (0.55 + i * 0.22), a, a + 2.2);
+      const a = this.t * 3 + i * 2.1;
+      ctx.arc(cx, cy, r * (0.6 + i * 0.18), a, a + 2.4);
       ctx.stroke();
     }
-    ctx.restore();
   }
 
   drawTims() {

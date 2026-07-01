@@ -116,6 +116,13 @@ const unlockAudio = () => { sound.resume(); music.start(); };
 window.addEventListener('pointerdown', unlockAudio, { once: true });
 window.addEventListener('keydown', unlockAudio, { once: true });
 
+// Wake audio the instant the page returns to the foreground (app-switch back,
+// unlock, reopened tab). iOS suspends/interrupts/closes the context while away,
+// so proactively revive it instead of waiting for the next sound. sound.resume()
+// rebuilds a closed context, which in turn rebuilds the music graph.
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sound.resume(); });
+window.addEventListener('pageshow', () => sound.resume());
+
 // The mute button is the master switch -- it silences SFX and music together.
 music.setMuted(sound.muted);
 const muteBtn = document.getElementById('mute-btn');

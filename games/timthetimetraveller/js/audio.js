@@ -2,8 +2,14 @@
 // is synthesized to match the game's hand-drawn feel. The world sim stays pure:
 // it only pushes event names into `world.events`, and main.js forwards them here.
 //
-// Browsers block audio until a user gesture, so the AudioContext is created
-// lazily and `resume()` is called on the first tap/keypress.
+// Mobile robustness (see the game-audio pattern): the AudioContext's lifecycle
+// changes out from under us -- it starts `suspended` (needs a gesture), goes
+// `interrupted` on iOS (call / app-switch / lock / reopen), or `closed` (iOS
+// tears it down). `ensure()` is the single accessor every sound routes through:
+// it lazily builds, revives on ANYTHING that isn't `running` (not just
+// `suspended` -- that omission is the classic "sound dies after rejoin" bug),
+// rebuilds a fresh context when the old one is `closed`, and sets the iOS audio
+// session to `playback` so sound survives the silent/ringer switch.
 
 const STORE_KEY = 'ttt_muted';
 
@@ -14,23 +20,33 @@ export class Sound {
     this.muted = false;
     try { this.muted = localStorage.getItem(STORE_KEY) === '1'; } catch (e) { /* ignore */ }
     this.lastPlay = {};   // name -> last start time, for de-duping bursts
+    this.onContext = null; // called after a fresh context is built (Music rebuilds)
   }
 
+  // The accessor: builds / revives / rebuilds, and returns the live context (or
+  // null if Web Audio is unavailable). Safe to call from anywhere, any time.
   ensure() {
-    if (this.ctx) return;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    this.ctx = new AC();
-    this.master = this.ctx.createGain();
-    this.master.gain.value = 0.5;
-    this.master.connect(this.ctx.destination);
+    // iOS/WebKit: 'playback' keeps sound on even with the silent switch engaged.
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* ignore */ }
+    // Build fresh on first use, or when iOS has torn the context down.
+    if (!this.ctx || this.ctx.state === 'closed') {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      try { this.ctx = new AC(); } catch (e) { this.ctx = null; return null; }
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.5;
+      this.master.connect(this.ctx.destination);
+      this.lastPlay = {};                  // clock reset -> old de-dupe times stale
+      if (this.onContext) this.onContext(); // let Music rebuild its graph on the new ctx
+    }
+    // Revive on ANYTHING not running: 'suspended' (backgrounded) AND iOS's
+    // 'interrupted'. resume() is async and may reject outside a gesture -- swallow it.
+    if (this.ctx.state !== 'running') { try { this.ctx.resume().catch(() => {}); } catch (e) { /* ignore */ } }
+    return this.ctx;
   }
 
-  // Call on a user gesture to satisfy autoplay policies.
-  resume() {
-    this.ensure();
-    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
-  }
+  // Call on a user gesture / when the page returns to the foreground.
+  resume() { this.ensure(); }
 
   setMuted(m) {
     this.muted = m;
