@@ -181,10 +181,21 @@ let muted = localStorage.getItem('yastupid_muted') === '1';
 function audio() {
   // 'playback' tells iOS/WebKit to keep playing even with the ringer/silent switch off.
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) {}
-  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {} }
-  if (actx && actx.state === 'suspended') actx.resume();
+  // Backgrounding on mobile can leave the context 'closed' (iOS sometimes tears it
+  // down entirely) — build a fresh one when that happens or on first use.
+  if (!actx || actx.state === 'closed') {
+    try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {}
+  }
+  // Anything that isn't 'running' needs a nudge: 'suspended' (backgrounded) *and*
+  // iOS's 'interrupted' (phone call / app switch / window reopen) both go silent
+  // otherwise. Only checking 'suspended' left interrupted contexts dead on rejoin.
+  if (actx && actx.state !== 'running') { try { actx.resume().catch(() => {}); } catch (_) {} }
   return actx;
 }
+// Returning to the foreground: revive the context proactively so the next sound
+// isn't dropped. There's still a pointerdown fallback for browsers that require a gesture.
+document.addEventListener('visibilitychange', () => { if (!document.hidden) audio(); });
+window.addEventListener('pageshow', () => audio());
 // a short bubble blip: a sine swept between two pitches with a fast pluck envelope
 function blip(f0, f1, dur, vol) {
   if (muted) return;
