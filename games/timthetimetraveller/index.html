@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Tim the Time Traveller</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- Top-left help menu (desktop + mobile). -->
+  <div id="help-menu">
+    <button id="help-btn" aria-label="How to play" title="How to play">?</button>
+    <div id="help-panel" hidden>
+      <strong>Tim the Time Traveller</strong>
+      <p class="tag">Collect 10 green time-orbs. Send yourself back in time so a past
+        copy of you can help. Avoid red orbs, live wires and pistons.</p>
+
+      <div class="keys">
+        <div class="krow"><span>Move</span><b class="k-desk">◀ ▶ &nbsp;/&nbsp; A D</b><b class="k-touch">◀ ▶ pad</b></div>
+        <div class="krow"><span>Jump (double)</span><b class="k-desk">▲ / W</b><b class="k-touch">▲ arrow</b></div>
+        <div class="krow"><span>Time travel</span><b class="k-desk">Space</b><b class="k-touch">◉ portal</b></div>
+        <div class="krow"><span>Switch Tim</span><b class="k-desk">Tab</b><b class="k-touch">⦿ Tim button</b></div>
+        <div class="krow"><span>Restart</span><b class="k-desk">R</b><b class="k-touch">tap screen</b></div>
+      </div>
+
+      <div class="opt-row">
+        <span>Music</span>
+        <button id="music-btn" type="button">On</button>
+      </div>
+
+      <div class="mobile-only handed-toggle">
+        <span>Controls side</span>
+        <button id="hand-btn" type="button">Right-handed</button>
+      </div>
+
+      <a href="editor.html">Open level editor →</a>
+    </div>
+  </div>
+
+  <!-- Mute toggle (top-right, desktop + mobile). -->
+  <button id="mute-btn" aria-label="Mute sound" title="Mute sound">
+    <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
+      <path class="spk" d="M4 9h3.5L12 5v14l-4.5-4H4z" fill="currentColor" />
+      <g class="waves" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M15.2 8.5a4.5 4.5 0 0 1 0 7" />
+        <path d="M17.7 6.2a8 8 0 0 1 0 11.6" />
+      </g>
+      <line class="slash" x1="14.5" y1="7.5" x2="21" y2="16.5"
+            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+  </button>
+
+  <!-- On-screen touch controls (shown only on touch / coarse-pointer devices).
+       Two-thumb layout: movement + time-travel on one side, jump (and the
+       switch-Tim button) on the other. Sides swap with handedness. -->
+  <div id="touch-controls" class="hand-right" hidden>
+    <!-- Movement, under one thumb. -->
+    <div class="pad pad-move">
+      <button class="tbtn tb-left"   data-act="left"   aria-label="Move left">◀</button>
+      <button class="tbtn tb-right"  data-act="right"  aria-label="Move right">▶</button>
+    </div>
+    <!-- Action cluster under the other thumb, bottom-anchored: the time-travel
+         portal and jump sit side by side on the bottom row, with the switch-Tim
+         button on top (the last only visible when there are 2+ Tims). -->
+    <div class="pad pad-act">
+      <button class="tbtn tb-toggle" data-act="toggle" aria-label="Switch Tim">
+        <svg viewBox="0 0 48 48" width="100%" height="100%" aria-hidden="true">
+          <!-- reticle corners -->
+          <g fill="none" stroke="#ffd166" stroke-width="2.4" stroke-linecap="round">
+            <path d="M6 14V6h8" /><path d="M42 14V6h-8" />
+            <path d="M6 34v8h8" /><path d="M42 34v8h-8" />
+          </g>
+          <!-- Tim's head only (matches the in-game sprite): a hair cap over a
+               skin face, big round glasses, and a little smile. -->
+          <rect x="11" y="15" width="26" height="18" rx="7" fill="#4a3525" />
+          <rect x="11" y="20" width="26" height="13" rx="6.5" fill="#f0c9a0" />
+          <g fill="none" stroke="#2a2f3c" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="18" cy="25" r="4.2" /><circle cx="30" cy="25" r="4.2" />
+            <path d="M22.2 25H25.8" />
+            <path d="M13.8 24.2 11.2 23.4" /><path d="M34.2 24.2 36.8 23.4" />
+          </g>
+          <g fill="#2a2f3c">
+            <circle cx="18" cy="25" r="1.6" /><circle cx="30" cy="25" r="1.6" />
+          </g>
+          <path d="M20.6 29.6Q24 32.4 27.4 29.6" fill="none"
+                stroke="#dcae84" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+      </button>
+      <div class="act-row">
+        <button class="tbtn tb-portal" data-act="portal" aria-label="Time travel"></button>
+        <button class="tbtn tb-up" data-act="jump" aria-label="Jump">▲</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portrait nudge: the game is built for landscape. -->
+  <div id="rotate-hint">
+    <div class="rot-icon">⟳</div>
+    <p>Rotate your device to landscape to play.</p>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #10131a; touch-action: manipulation; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Kill the double-tap-to-zoom on menu buttons/links (the play surface and
+   d-pad buttons use touch-action:none, which already covers them). */
+button, a { touch-action: manipulation; }
+
+#game { display: block; width: 100vw; height: 100vh; image-rendering: auto; touch-action: none; }
+
+/* ---- top-left help menu (desktop + mobile) ---------------------------- */
+#help-menu {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  left: calc(12px + env(safe-area-inset-left));
+  z-index: 30;
+}
+#help-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(120, 140, 180, 0.3);
+  background: rgba(18, 22, 34, 0.82);
+  color: #cdd6ea;
+  font-size: 18px; font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+#help-btn:hover { background: rgba(30, 38, 56, 0.9); color: #fff; }
+
+#help-panel {
+  margin-top: 8px;
+  width: 280px; max-width: calc(100vw - 28px);
+  background: rgba(18, 22, 34, 0.92);
+  border: 1px solid rgba(120, 140, 180, 0.25);
+  color: #cdd6ea;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  backdrop-filter: blur(4px);
+}
+#help-panel[hidden] { display: none; }
+#help-panel strong { display: block; font-size: 15px; color: #fff; margin-bottom: 6px; }
+#help-panel .tag { color: #98a2ba; margin-bottom: 10px; }
+#help-panel .keys { display: flex; flex-direction: column; gap: 4px; }
+#help-panel .krow { display: flex; justify-content: space-between; gap: 12px; }
+#help-panel .krow span { color: #8a93a8; }
+#help-panel .krow b { color: #e9edf5; font-weight: 600; text-align: right; }
+#help-panel .k-touch { display: none; }
+#help-panel a { display: inline-block; margin-top: 10px; color: #4db5ff; text-decoration: none; }
+#help-panel a:hover { text-decoration: underline; }
+
+/* Handedness toggle -- only meaningful with on-screen controls. */
+#help-panel .handed-toggle {
+  display: none;                    /* shown via body.is-touch below */
+  align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 12px;
+  padding-top: 10px; border-top: 1px solid rgba(120, 140, 180, 0.18);
+}
+#help-panel .handed-toggle span { color: #8a93a8; }
+
+/* Generic option row (e.g. Music on/off) -- shown on all devices. */
+#help-panel .opt-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 12px;
+  padding-top: 10px; border-top: 1px solid rgba(120, 140, 180, 0.18);
+}
+#help-panel .opt-row span { color: #8a93a8; }
+
+#hand-btn, #music-btn {
+  background: rgba(77, 181, 255, 0.15);
+  border: 1px solid rgba(77, 181, 255, 0.5);
+  color: #cfe6ff;
+  padding: 5px 10px; border-radius: 7px;
+  font-size: 12px; cursor: pointer;
+  min-width: 44px;
+}
+#hand-btn:hover, #music-btn:hover { background: rgba(77, 181, 255, 0.28); }
+#music-btn.off {
+  background: rgba(120, 140, 180, 0.12);
+  border-color: rgba(120, 140, 180, 0.4);
+  color: #8a93a8;
+}
+
+/* On touch devices: show the touch hints, hide the desktop key column,
+   reveal the handedness toggle. */
+body.is-touch #help-panel .k-desk { display: none; }
+body.is-touch #help-panel .k-touch { display: inline; }
+body.is-touch #help-panel .handed-toggle { display: flex; }
+
+/* ---- top-right mute button (desktop + mobile) ------------------------- */
+#mute-btn {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  right: calc(12px + env(safe-area-inset-right));
+  z-index: 30;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(120, 140, 180, 0.3);
+  background: rgba(18, 22, 34, 0.82);
+  color: #cdd6ea;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+#mute-btn:hover { background: rgba(30, 38, 56, 0.9); color: #fff; }
+#mute-btn .slash { display: none; }
+#mute-btn.muted { color: #ff7080; }
+#mute-btn.muted .waves { display: none; }
+#mute-btn.muted .slash { display: inline; }
+
+/* ---- on-screen touch controls ---------------------------------------- */
+#touch-controls { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+#touch-controls[hidden] { display: none; }
+
+.pad {
+  position: fixed;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+/* Movement + portal: a single row of [◀][◉][▶] under one thumb. */
+.pad-move {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Action cluster: a bottom-anchored column. The bottom row holds the portal +
+   jump side by side; the switch-Tim button sits above it when relevant. */
+.pad-act {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.act-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Handedness: which side each cluster sits on. Movement and the jump/action
+   cluster live on opposite sides so each thumb owns one. */
+.hand-right .pad-move { right: calc(22px + env(safe-area-inset-right)); }
+.hand-right .pad-act  { left:  calc(22px + env(safe-area-inset-left)); }
+.hand-left  .pad-move { left:  calc(22px + env(safe-area-inset-left)); }
+.hand-left  .pad-act  { right: calc(22px + env(safe-area-inset-right)); }
+
+.tbtn {
+  pointer-events: auto;
+  width: 62px; height: 62px;
+  border-radius: 14px;
+  border: 1px solid rgba(150, 170, 210, 0.35);
+  background: rgba(30, 38, 56, 0.42);
+  color: #dbe4f5;
+  font-size: 24px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+  touch-action: none;
+  transition: background 0.08s, transform 0.08s;
+}
+.tbtn.pressed { background: rgba(77, 181, 255, 0.4); transform: scale(0.94); }
+
+/* Center time-travel button: the blue portal. */
+.tb-portal {
+  border-radius: 50%;
+  border-color: rgba(77, 181, 255, 0.6);
+  background:
+    radial-gradient(circle at 50% 50%, #ffffff 0%, #8fd0ff 22%, #4db5ff 45%, rgba(77,181,255,0.12) 78%);
+  box-shadow: 0 0 14px rgba(77, 181, 255, 0.5), inset 0 0 8px rgba(255,255,255,0.4);
+  position: relative;
+}
+.tb-portal::after {
+  content: "";
+  position: absolute; inset: 8px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-top-color: transparent; border-left-color: transparent;
+  animation: portal-spin 2.4s linear infinite;
+}
+.tb-portal.pressed { transform: scale(0.94); box-shadow: 0 0 20px rgba(77, 181, 255, 0.8); }
+@keyframes portal-spin { to { transform: rotate(360deg); } }
+
+/* Jump button: an up-arrow, same size as the movement arrows. */
+.tb-up { font-size: 26px; }
+
+/* Switch-Tim button: same size/shape as the portal, reticle'd Tim icon.
+   Hidden until JS adds .show (i.e. once a second Tim exists); the jump button
+   below it keeps a fixed position whether or not this is present. */
+.tb-toggle {
+  display: none;
+  border-radius: 50%;
+  padding: 8px;
+  border-color: rgba(255, 209, 102, 0.5);
+  background: rgba(30, 38, 56, 0.5);
+}
+.tb-toggle.show { display: flex; }
+.tb-toggle svg { display: block; }
+
+@media (max-height: 430px) {
+  .pad-move, .pad-act, .act-row { gap: 6px; }
+  .tbtn { width: 54px; height: 54px; font-size: 21px; }
+  .tb-up { font-size: 23px; }
+}
+
+/* ---- portrait rotate hint (touch only) -------------------------------- */
+#rotate-hint {
+  display: none;
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(8, 10, 16, 0.94);
+  color: #cdd6ea;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; text-align: center; padding: 24px;
+}
+#rotate-hint .rot-icon { font-size: 54px; animation: rot-tilt 2s ease-in-out infinite; }
+#rotate-hint p { font-size: 16px; max-width: 260px; }
+@keyframes rot-tilt { 0%,100% { transform: rotate(-12deg); } 50% { transform: rotate(78deg); } }
+
+body.is-touch #rotate-hint { display: none; }
+@media (orientation: portrait) {
+  body.is-touch #rotate-hint { display: flex; }
+}

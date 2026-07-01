@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Tim the Time Traveller — portrait favicon, drawn with his in-game colors -->
+  <rect width="64" height="64" rx="12" fill="#1a2030"/>
+
+  <!-- lab coat shoulders -->
+  <path d="M14 64 L20 46 Q32 40 44 46 L50 64 Z" fill="#f4f7fc"/>
+  <path d="M32 46 L32 64" stroke="#d3dae8" stroke-width="1.5"/>
+  <path d="M32 46 L24 47 L32 56 Z" fill="#46505a" fill-opacity="0.18"/>
+  <path d="M32 46 L40 47 L32 56 Z" fill="#46505a" fill-opacity="0.18"/>
+  <!-- pocket protector with pens -->
+  <rect x="21" y="49" width="8" height="9" fill="#9fb4ff"/>
+  <line x1="24" y1="50" x2="24" y2="56" stroke="#3a4a8a" stroke-width="1.2"/>
+  <line x1="26" y1="50" x2="26" y2="56" stroke="#3a4a8a" stroke-width="1.2"/>
+
+  <!-- head: hair cap, then skin face over it -->
+  <rect x="17" y="10" width="30" height="32" rx="11" fill="#4a3525"/>
+  <rect x="17" y="20" width="30" height="22" rx="10" fill="#f0c9a0"/>
+
+  <!-- glasses -->
+  <g fill="none" stroke="#2a2f3c" stroke-width="1.6">
+    <circle cx="26" cy="29" r="4.5"/>
+    <circle cx="38" cy="29" r="4.5"/>
+    <line x1="30.5" y1="29" x2="33.5" y2="29"/>
+  </g>
+  <!-- eyes -->
+  <circle cx="26" cy="29" r="1.8" fill="#2a2f3c"/>
+  <circle cx="38" cy="29" r="1.8" fill="#2a2f3c"/>
+  <!-- smile -->
+  <path d="M27 36 Q32 40 37 36" fill="none" stroke="#dcae84" stroke-width="1.6" stroke-linecap="round"/>
+</svg>
