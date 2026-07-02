@@ -23,34 +23,19 @@ Personally, I have lots of fun small ideas and love getting to make them. A samp
 The one by Whitehead about carefully using mental effort. (Whitehead is my academic
 great-great-grandfather, which the page now notes.)
 
-The one by Alan Watts about the world being fundamentally playful. Candidates below
-(strongest first) — all from his recorded lectures, so wording varies slightly between
-transcripts:
+The one by Alan Watts about the world being fundamentally playful. I chose the trimmed
+one-line version:
 
-1. **(Best fit — the "music" passage)**
-   > Existence is basically playful. There is no necessity for it whatsoever. It isn't
-   > going anywhere, that is to say, it doesn't have some destination that it ought to
-   > arrive at. It is best understood by analogy with music, because music, as an art
-   > form, is essentially playful. We say "you *play* the piano," you don't "work" the
-   > piano.
-   > — Alan Watts (lecture)
+> Existence is basically playful.
+> — Alan Watts
 
-2. **(Shorter, on work vs. play)**
-   > This is the real secret of life — to be completely engaged with what you are doing
-   > in the here and now. And instead of calling it work, realize it is play.
-   > — Alan Watts
+This is the opening sentence of his recorded "music" passage (which continues "...It is
+best understood by analogy with music, because music, as an art form, is essentially
+playful. We say 'you *play* the piano,' you don't 'work' the piano."). I kept just the
+first line on the page for punch.
 
-3. **(On the universe as play — "lila")**
-   > The universe is fundamentally at play. It is the dance of Shiva, the play of the
-   > divine, with no purpose beyond the dancing itself.
-   > — Alan Watts (paraphrase of his recurring theme drawn from the Hindu idea of *lila*)
-
-_Note: #1 and #2 are close to his actual recorded wording; #3 is a paraphrase of a theme
-he returned to often rather than a verbatim quote — verify against a transcript before
-publishing if exact attribution matters._
-
-_(Both quotes now render on the page: the Whitehead quote and Watts candidate #1, the
-"existence is basically playful" passage.)_
+_(Both quotes now render on the page: the Whitehead quote and the one-line Watts quote
+above.)_
 
 ## Picture
 
