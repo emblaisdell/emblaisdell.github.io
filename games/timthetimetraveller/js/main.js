@@ -1,29 +1,37 @@
 // Game entry point: fixed-timestep loop, input, and wiring world<->renderer.
 
 import { DT, CELL, WIN_ENERGY } from './constants.js';
-import { TEST_LEVEL } from './level.js';
+import { emptyLevel } from './level.js';
 import { World } from './world.js';
 import { Renderer } from './render.js';
 import { Sound } from './audio.js';
 import { Music } from './music.js';
 
 const canvas = document.getElementById('game');
-const loaded = loadLevel();
+const loaded = await loadLevel();
 const world = new World(loaded.level);
 const renderer = new Renderer(canvas, world);
 const sound = new Sound();
 const music = new Music(sound);
 
-function loadLevel() {
+async function loadLevel() {
   // A level handed over from the editor (via localStorage) takes precedence and
   // is available synchronously.
   try {
     const raw = localStorage.getItem('ttt_play_level');
     if (raw) { localStorage.removeItem('ttt_play_level'); return { level: JSON.parse(raw), fromEditor: true }; }
   } catch (e) { /* ignore */ }
-  // Otherwise start on the built-in level as a placeholder; the bundled default
-  // map (levels/test-lab-01.json) is fetched and swapped in below once loaded.
-  return { level: TEST_LEVEL, fromEditor: false };
+  // Otherwise fetch the bundled default map before the world is created, so the
+  // correct room is the only thing that ever renders (no placeholder flash).
+  // Falls back to an empty level only if the fetch fails.
+  try {
+    const r = await fetch('levels/test-lab-01.json');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return { level: await r.json(), fromEditor: false };
+  } catch (e) {
+    console.warn('Could not load default map, starting on an empty level:', e);
+    return { level: emptyLevel(), fromEditor: false };
+  }
 }
 
 function resize() {
@@ -46,16 +54,6 @@ renderer.snapCamera();   // open centred on Tim rather than panning in from orig
 function restart() {
   world.reset();
   renderer.snapCamera();
-}
-
-// Load the bundled default map and swap it in (unless the editor handed us one).
-// Kept async so the game paints immediately; the swap lands within a frame or
-// two on a local server. Falls back to the built-in TEST_LEVEL on any error.
-if (!loaded.fromEditor) {
-  fetch('levels/test-lab-01.json')
-    .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
-    .then((lvl) => { world.level = lvl; restart(); })
-    .catch((e) => console.warn('Could not load default map, using built-in level:', e));
 }
 
 // --- prevent iOS zoom -----------------------------------------------------

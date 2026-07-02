@@ -64,7 +64,17 @@ export class World {
   // Record a one-shot event (jump, collect, death, ...). The host drains
   // `events` each frame to fire sound effects; the sim itself stays pure so it
   // still runs headless (tests, node) with no audio dependency.
-  emit(name) { this.events.push(name); }
+  emit(name, data) { this.events.push(data ? { name, ...data } : name); }
+
+  // Position of a world event relative to the focused Tim ("the listener"), so
+  // the host can spatialise its sound: `dist` (cells) attenuates + muffles,
+  // signed `dx` (cells) pans left/right. Returns null if there's no listener.
+  listenerRel(cx, cy) {
+    const L = this.focused;
+    if (!L) return null;
+    const dx = cx - (L.x + L.w / 2), dy = cy - (L.y + L.h / 2);
+    return { dist: Math.hypot(dx, dy), dx };
+  }
 
   cycleFocus() {
     if (this.tims.length < 2) return;
@@ -331,7 +341,9 @@ export class World {
       if (p.on && !prevOn[i]) {
         const [dx, dy] = DIRS[p.dir];
         const ex = p.x + dx, ey = p.y + dy;
-        if (this.time >= PISTON_WARMUP) this.emit('piston');  // mechanical clunk
+        // Mechanical clunk, spatialised so distant pistons are quieter + duller.
+        if (this.time >= PISTON_WARMUP)
+          this.emit('piston', this.listenerRel(p.x + 0.5, p.y + 0.5));
         // Crush any Tim occupying the extension cell.
         const head = { x: ex, y: ey, w: 1, h: 1 };
         for (const t of this.tims) {

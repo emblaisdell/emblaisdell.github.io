@@ -902,7 +902,7 @@ export class Renderer {
     // Restart prompt matches the platform: "tap" on touch devices, "Press R"
     // where there's a keyboard.
     const again = this.isTouch ? 'Tap' : 'Press R';
-    if (w.status === 'win') this.banner('YOU WIN!', '#46e08b', `You reached 10 time energy.  ${again} to replay.`);
+    if (w.status === 'win') this.banner('YOU WIN!', '#46e08b', `Congratulations!  You obtained 10 time energy and have mastered time travel.  ${again} to replay.`);
     if (w.status === 'dead') {
       const msg = w.deathMsg || 'You died.';
       this.banner('YOU DIED', '#ff4d5e', `${msg}  ${again} to restart.`);

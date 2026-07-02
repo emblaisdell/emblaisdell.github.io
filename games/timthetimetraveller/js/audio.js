@@ -55,9 +55,21 @@ export class Sound {
   toggle() { this.setMuted(!this.muted); return this.muted; }
 
   // --- primitive voices --------------------------------------------------
+  // The node a voice should connect into: a stereo panner feeding master when a
+  // (nonzero) pan is asked for and supported, else master directly.
+  sink(pan = 0) {
+    if (pan && this.ctx.createStereoPanner) {
+      const p = this.ctx.createStereoPanner();
+      p.pan.value = Math.max(-1, Math.min(1, pan));
+      p.connect(this.master);
+      return p;
+    }
+    return this.master;
+  }
+
   tone(freq, opts = {}) {
     const { type = 'sine', dur = 0.12, gain = 0.3, attack = 0.005,
-      release = 0.06, slideTo = null, delay = 0, detune = 0 } = opts;
+      release = 0.06, slideTo = null, delay = 0, detune = 0, pan = 0 } = opts;
     const ctx = this.ctx, t0 = ctx.currentTime + delay;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -68,14 +80,14 @@ export class Sound {
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(gain, t0 + attack);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + release);
-    osc.connect(g).connect(this.master);
+    osc.connect(g).connect(this.sink(pan));
     osc.start(t0);
     osc.stop(t0 + dur + release + 0.02);
   }
 
   noise(opts = {}) {
     const { dur = 0.2, gain = 0.3, type = 'lowpass', freq = 1000,
-      freqTo = null, q = 1, delay = 0 } = opts;
+      freqTo = null, q = 1, delay = 0, pan = 0 } = opts;
     const ctx = this.ctx, t0 = ctx.currentTime + delay;
     const n = Math.floor(ctx.sampleRate * dur);
     const buf = ctx.createBuffer(1, n, ctx.sampleRate);
@@ -89,15 +101,19 @@ export class Sound {
     const g = ctx.createGain();
     g.gain.setValueAtTime(gain, t0);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    src.connect(filt).connect(g).connect(this.master);
+    src.connect(filt).connect(g).connect(this.sink(pan));
     src.start(t0);
     src.stop(t0 + dur + 0.02);
   }
 
   // --- event dispatch ----------------------------------------------------
-  play(name) {
+  // `ev` is an event name, or a `{ name, dist, dx, ... }` object for positional
+  // sounds (dist/dx in cells, relative to the focused Tim -- see world.emit).
+  play(ev) {
     this.ensure();
     if (!this.ctx || this.muted) return;
+    const name = typeof ev === 'string' ? ev : ev.name;
+    const pos = typeof ev === 'string' ? null : ev;
     // Collapse identical events that fire in the same instant (e.g. several
     // pistons on one frame) so they don't stack into a loud blast.
     const t = this.ctx.currentTime;
@@ -132,10 +148,18 @@ export class Sound {
         this.tone(300, { type: 'square', dur: 0.025, gain: 0.12 });
         this.tone(190, { type: 'square', dur: 0.04, gain: 0.10, delay: 0.02 });
         break;
-      case 'piston':    // heavy clunk
-        this.noise({ dur: 0.08, gain: 0.18, type: 'bandpass', freq: 420, q: 1.2 });
-        this.tone(90, { type: 'square', dur: 0.06, gain: 0.14, slideTo: 55 });
+      case 'piston': {  // heavy clunk -- fades + dulls with distance from Tim
+        // g: 1 up close, ~0.5 at 8 cells, ~0.2 at 16. pan: full by ~12 cells out.
+        let g = 1, pan = 0, freq = 420;
+        if (pos && pos.dist != null) {
+          g = 1 / (1 + (pos.dist / 8) ** 2);
+          pan = Math.max(-1, Math.min(1, pos.dx / 12)) * 0.8;
+          freq = 420 * (0.4 + 0.6 * g);   // distant clunks lose their crack
+        }
+        this.noise({ dur: 0.08, gain: 0.18 * g, type: 'bandpass', freq, q: 1.2, pan });
+        this.tone(90, { type: 'square', dur: 0.06, gain: 0.14 * g, slideTo: 55, pan });
         break;
+      }
       case 'timeTravel':  // rising portal whoosh
         this.tone(200, { type: 'sine', dur: 0.5, gain: 0.15, slideTo: 820 });
         this.noise({ dur: 0.5, gain: 0.07, type: 'bandpass', freq: 300, freqTo: 2200, q: 2 });
