@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Eponymous Laws — design proof</title>
+<style>
+  :root { --ink:#222; --soft:#5a5a5a; --gray:#8c8c8c; --line:#dcdcdc; --paper:#fff; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; }
+  body { background:#e6e6e6; color:var(--ink);
+    font-family: Georgia,'Times New Roman',serif; line-height:1.4;
+    overflow:hidden; }
+
+  /* Horizontal, swipeable, snap-per-card track */
+  .track { display:flex; height:100vh; height:100dvh;
+    overflow-x:auto; overflow-y:hidden;
+    scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; }
+  .track::-webkit-scrollbar { display:none; }
+
+  .slide { flex:0 0 100%; scroll-snap-align:center; height:100%;
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:14px; padding:26px 18px; }
+  .cap { font-size:15px; color:var(--soft); text-align:center; }
+  .cap .num { color:var(--gray); font-variant-numeric:tabular-nums;
+    margin-right:6px; }
+  .face { max-width:94vw; max-height:40vh; width:auto; height:auto;
+    object-fit:contain; background:var(--paper); border:1px solid var(--line);
+    border-radius:8px; box-shadow:0 8px 26px rgba(0,0,0,.10); }
+
+  .intro h1 { font-size:40px; font-weight:700; margin:0; letter-spacing:.5px; }
+  .intro .sub { color:var(--soft); font-style:italic; margin:8px 0 0; }
+  .intro .hint { color:var(--gray); text-transform:uppercase; font-size:13px;
+    letter-spacing:2px; margin-top:26px; }
+
+  /* Floating position pill + edge arrows */
+  .pill { position:fixed; top:12px; left:50%; transform:translateX(-50%);
+    background:rgba(255,255,255,.9); border:1px solid var(--line);
+    border-radius:20px; padding:6px 15px; font-size:13px; color:var(--soft);
+    letter-spacing:.5px; z-index:10; backdrop-filter:blur(4px);
+    max-width:86vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nav { position:fixed; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(255,255,255,.85); color:var(--soft); font-size:20px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    z-index:10; user-select:none; }
+  .nav.prev { left:12px; } .nav.next { right:12px; }
+  @media (hover:none) { .nav { display:none; } }  /* touch: just swipe */
+</style>
+</head>
+<body>
+  <div class="pill" id="pill"></div>
+  <div class="nav prev" id="prev">&lsaquo;</div>
+  <div class="nav next" id="next">&rsaquo;</div>
+  <div class="track" id="track">
+    <section class="slide intro" data-label="Eponymous Laws">
+      <h1>Eponymous Laws</h1>
+      <p class="sub">108-card deck — design proof (framed variant)</p>
+      <p class="hint">swipe to browse &rarr;</p>
+    </section>
+    <section class="slide" data-label="Tuck Box &middot; Front">
+      <div class="cap">Tuck Box &mdash; Front</div>
+      <img class="face" src="box/front.png" alt="box Front">
+    </section>
+    <section class="slide" data-label="Tuck Box &middot; Back">
+      <div class="cap">Tuck Box &mdash; Back</div>
+      <img class="face" src="box/back.png" alt="box Back">
+    </section>
+    <section class="slide" data-label="Tuck Box &middot; Spine">
+      <div class="cap">Tuck Box &mdash; Spine</div>
+      <img class="face" src="box/spine.png" alt="box Spine">
+    </section>
+    <section class="slide" data-label="001 &middot; Parkinson's law">
+      <div class="cap"><span class="num">001</span> Parkinson's law</div>
+      <img class="face" loading="lazy" src="back/001-parkinson-s-law.png" alt="back Parkinson's law">
+      <img class="face" loading="lazy" src="front/001-parkinson-s-law.png" alt="front Parkinson's law">
+    </section>
+    <section class="slide" data-label="002 &middot; Parkinson's law of triviality">
+      <div class="cap"><span class="num">002</span> Parkinson's law of triviality</div>
+      <img class="face" loading="lazy" src="back/002-parkinson-s-law-of-triviality.png" alt="back Parkinson's law of triviality">
+      <img class="face" loading="lazy" src="front/002-parkinson-s-law-of-triviality.png" alt="front Parkinson's law of triviality">
+    </section>
+    <section class="slide" data-label="003 &middot; Peter principle">
+      <div class="cap"><span class="num">003</span> Peter principle</div>
+      <img class="face" loading="lazy" src="back/003-peter-principle.png" alt="back Peter principle">
+      <img class="face" loading="lazy" src="front/003-peter-principle.png" alt="front Peter principle">
+    </section>
+    <section class="slide" data-label="004 &middot; Putt's law">
+      <div class="cap"><span class="num">004</span> Putt's law</div>
+      <img class="face" loading="lazy" src="back/004-putt-s-law.png" alt="back Putt's law">
+      <img class="face" loading="lazy" src="front/004-putt-s-law.png" alt="front Putt's law">
+    </section>
+    <section class="slide" data-label="005 &middot; Pournelle's iron law of bureaucracy">
+      <div class="cap"><span class="num">005</span> Pournelle's iron law of bureaucracy</div>
+      <img class="face" loading="lazy" src="back/005-pournelle-s-iron-law.png" alt="back Pournelle's iron law">
+      <img class="face" loading="lazy" src="front/005-pournelle-s-iron-law.png" alt="front Pournelle's iron law of bureaucracy">
+    </section>
+    <section class="slide" data-label="006 &middot; Michels's iron law of oligarchy">
+      <div class="cap"><span class="num">006</span> Michels's iron law of oligarchy</div>
+      <img class="face" loading="lazy" src="back/006-michels-s-iron-law.png" alt="back Michels's iron law">
+      <img class="face" loading="lazy" src="front/006-michels-s-iron-law.png" alt="front Michels's iron law of oligarchy">
+    </section>
+    <section class="slide" data-label="007 &middot; Shirky principle">
+      <div class="cap"><span class="num">007</span> Shirky principle</div>
+      <img class="face" loading="lazy" src="back/007-shirky-principle.png" alt="back Shirky principle">
+      <img class="face" loading="lazy" src="front/007-shirky-principle.png" alt="front Shirky principle">
+    </section>
+    <section class="slide" data-label="008 &middot; Joy's law">
+      <div class="cap"><span class="num">008</span> Joy's law</div>
+      <img class="face" loading="lazy" src="back/008-joy-s-law.png" alt="back Joy's law">
+      <img class="face" loading="lazy" src="front/008-joy-s-law.png" alt="front Joy's law">
+    </section>
+    <section class="slide" data-label="009 &middot; Cheops law">
+      <div class="cap"><span class="num">009</span> Cheops law</div>
+      <img class="face" loading="lazy" src="back/009-cheops-law.png" alt="back Cheops law">
+      <img class="face" loading="lazy" src="front/009-cheops-law.png" alt="front Cheops law">
+    </section>
+    <section class="slide" data-label="010 &middot; Conway's law">
+      <div class="cap"><span class="num">010</span> Conway's law</div>
+      <img class="face" loading="lazy" src="back/010-conway-s-law.png" alt="back Conway's law">
+      <img class="face" loading="lazy" src="front/010-conway-s-law.png" alt="front Conway's law">
+    </section>
+    <section class="slide" data-label="011 &middot; Brooks's law">
+      <div class="cap"><span class="num">011</span> Brooks's law</div>
+      <img class="face" loading="lazy" src="back/011-brooks-s-law.png" alt="back Brooks's law">
+      <img class="face" loading="lazy" src="front/011-brooks-s-law.png" alt="front Brooks's law">
+    </section>
+    <section class="slide" data-label="012 &middot; Hofstadter's law">
+      <div class="cap"><span class="num">012</span> Hofstadter's law</div>
+      <img class="face" loading="lazy" src="back/012-hofstadter-s-law.png" alt="back Hofstadter's law">
+      <img class="face" loading="lazy" src="front/012-hofstadter-s-law.png" alt="front Hofstadter's law">
+    </section>
+    <section class="slide" data-label="013 &middot; Gall's law">
+      <div class="cap"><span class="num">013</span> Gall's law</div>
+      <img class="face" loading="lazy" src="back/013-gall-s-law.png" alt="back Gall's law">
+      <img class="face" loading="lazy" src="front/013-gall-s-law.png" alt="front Gall's law">
+    </section>
+    <section class="slide" data-label="014 &middot; Wirth's law">
+      <div class="cap"><span class="num">014</span> Wirth's law</div>
+      <img class="face" loading="lazy" src="back/014-wirth-s-law.png" alt="back Wirth's law">
+      <img class="face" loading="lazy" src="front/014-wirth-s-law.png" alt="front Wirth's law">
+    </section>
+    <section class="slide" data-label="015 &middot; Kernighan's law">
+      <div class="cap"><span class="num">015</span> Kernighan's law</div>
+      <img class="face" loading="lazy" src="back/015-kernighan-s-law.png" alt="back Kernighan's law">
+      <img class="face" loading="lazy" src="front/015-kernighan-s-law.png" alt="front Kernighan's law">
+    </section>
+    <section class="slide" data-label="016 &middot; Postel's law">
+      <div class="cap"><span class="num">016</span> Postel's law</div>
+      <img class="face" loading="lazy" src="back/016-postel-s-law.png" alt="back Postel's law">
+      <img class="face" loading="lazy" src="front/016-postel-s-law.png" alt="front Postel's law">
+    </section>
+    <section class="slide" data-label="017 &middot; Linus's law">
+      <div class="cap"><span class="num">017</span> Linus's law</div>
+      <img class="face" loading="lazy" src="back/017-linus-s-law.png" alt="back Linus's law">
+      <img class="face" loading="lazy" src="front/017-linus-s-law.png" alt="front Linus's law">
+    </section>
+    <section class="slide" data-label="018 &middot; Amdahl's law">
+      <div class="cap"><span class="num">018</span> Amdahl's law</div>
+      <img class="face" loading="lazy" src="back/018-amdahl-s-law.png" alt="back Amdahl's law">
+      <img class="face" loading="lazy" src="front/018-amdahl-s-law.png" alt="front Amdahl's law">
+    </section>
+    <section class="slide" data-label="019 &middot; Tesler's law">
+      <div class="cap"><span class="num">019</span> Tesler's law</div>
+      <img class="face" loading="lazy" src="back/019-tesler-s-law.png" alt="back Tesler's law">
+      <img class="face" loading="lazy" src="front/019-tesler-s-law.png" alt="front Tesler's law">
+    </section>
+    <section class="slide" data-label="020 &middot; Kerckhoffs's principle">
+      <div class="cap"><span class="num">020</span> Kerckhoffs's principle</div>
+      <img class="face" loading="lazy" src="back/020-kerckhoffs-s-principle.png" alt="back Kerckhoffs's principle">
+      <img class="face" loading="lazy" src="front/020-kerckhoffs-s-principle.png" alt="front Kerckhoffs's principle">
+    </section>
+    <section class="slide" data-label="021 &middot; Anderson's rule">
+      <div class="cap"><span class="num">021</span> Anderson's rule</div>
+      <img class="face" loading="lazy" src="back/021-anderson-s-rule.png" alt="back Anderson's rule">
+      <img class="face" loading="lazy" src="front/021-anderson-s-rule.png" alt="front Anderson's rule">
+    </section>
+    <section class="slide" data-label="022 &middot; Liskov substitution principle">
+      <div class="cap"><span class="num">022</span> Liskov substitution principle</div>
+      <img class="face" loading="lazy" src="back/022-liskov-s-principle.png" alt="back Liskov's principle">
+      <img class="face" loading="lazy" src="front/022-liskov-s-principle.png" alt="front Liskov substitution principle">
+    </section>
+    <section class="slide" data-label="023 &middot; Zawinski's law">
+      <div class="cap"><span class="num">023</span> Zawinski's law</div>
+      <img class="face" loading="lazy" src="back/023-zawinski-s-law.png" alt="back Zawinski's law">
+      <img class="face" loading="lazy" src="front/023-zawinski-s-law.png" alt="front Zawinski's law">
+    </section>
+    <section class="slide" data-label="024 &middot; Spolsky's law of leaky abstractions">
+      <div class="cap"><span class="num">024</span> Spolsky's law of leaky abstractions</div>
+      <img class="face" loading="lazy" src="back/024-spolsky-s-law.png" alt="back Spolsky's law">
+      <img class="face" loading="lazy" src="front/024-spolsky-s-law.png" alt="front Spolsky's law of leaky abstractions">
+    </section>
+    <section class="slide" data-label="025 &middot; Sowa's law of standards">
+      <div class="cap"><span class="num">025</span> Sowa's law of standards</div>
+      <img class="face" loading="lazy" src="back/025-sowa-s-law.png" alt="back Sowa's law">
+      <img class="face" loading="lazy" src="front/025-sowa-s-law.png" alt="front Sowa's law of standards">
+    </section>
+    <section class="slide" data-label="026 &middot; Doctorow's law">
+      <div class="cap"><span class="num">026</span> Doctorow's law</div>
+      <img class="face" loading="lazy" src="back/026-doctorow-s-law.png" alt="back Doctorow's law">
+      <img class="face" loading="lazy" src="front/026-doctorow-s-law.png" alt="front Doctorow's law">
+    </section>
+    <section class="slide" data-label="027 &middot; Atwood's law">
+      <div class="cap"><span class="num">027</span> Atwood's law</div>
+      <img class="face" loading="lazy" src="back/027-atwood-s-law.png" alt="back Atwood's law">
+      <img class="face" loading="lazy" src="front/027-atwood-s-law.png" alt="front Atwood's law">
+    </section>
+    <section class="slide" data-label="028 &middot; Moore's law">
+      <div class="cap"><span class="num">028</span> Moore's law</div>
+      <img class="face" loading="lazy" src="back/028-moore-s-law.png" alt="back Moore's law">
+      <img class="face" loading="lazy" src="front/028-moore-s-law.png" alt="front Moore's law">
+    </section>
+    <section class="slide" data-label="029 &middot; Metcalfe's law">
+      <div class="cap"><span class="num">029</span> Metcalfe's law</div>
+      <img class="face" loading="lazy" src="back/029-metcalfe-s-law.png" alt="back Metcalfe's law">
+      <img class="face" loading="lazy" src="front/029-metcalfe-s-law.png" alt="front Metcalfe's law">
+    </section>
+    <section class="slide" data-label="030 &middot; Amara's law">
+      <div class="cap"><span class="num">030</span> Amara's law</div>
+      <img class="face" loading="lazy" src="back/030-amara-s-law.png" alt="back Amara's law">
+      <img class="face" loading="lazy" src="front/030-amara-s-law.png" alt="front Amara's law">
+    </section>
+    <section class="slide" data-label="031 &middot; Kranzberg's laws of technology">
+      <div class="cap"><span class="num">031</span> Kranzberg's laws of technology</div>
+      <img class="face" loading="lazy" src="back/031-kranzberg-s-laws.png" alt="back Kranzberg's laws">
+      <img class="face" loading="lazy" src="front/031-kranzberg-s-laws.png" alt="front Kranzberg's laws of technology">
+    </section>
+    <section class="slide" data-label="032 &middot; Clarke's third law">
+      <div class="cap"><span class="num">032</span> Clarke's third law</div>
+      <img class="face" loading="lazy" src="back/032-clarke-s-third-law.png" alt="back Clarke's third law">
+      <img class="face" loading="lazy" src="front/032-clarke-s-third-law.png" alt="front Clarke's third law">
+    </section>
+    <section class="slide" data-label="033 &middot; Goodhart's law">
+      <div class="cap"><span class="num">033</span> Goodhart's law</div>
+      <img class="face" loading="lazy" src="back/033-goodhart-s-law.png" alt="back Goodhart's law">
+      <img class="face" loading="lazy" src="front/033-goodhart-s-law.png" alt="front Goodhart's law">
+    </section>
+    <section class="slide" data-label="034 &middot; Matthew effect">
+      <div class="cap"><span class="num">034</span> Matthew effect</div>
+      <img class="face" loading="lazy" src="back/034-matthew-effect.png" alt="back Matthew effect">
+      <img class="face" loading="lazy" src="front/034-matthew-effect.png" alt="front Matthew effect">
+    </section>
+    <section class="slide" data-label="035 &middot; Streisand effect">
+      <div class="cap"><span class="num">035</span> Streisand effect</div>
+      <img class="face" loading="lazy" src="back/035-streisand-effect.png" alt="back Streisand effect">
+      <img class="face" loading="lazy" src="front/035-streisand-effect.png" alt="front Streisand effect">
+    </section>
+    <section class="slide" data-label="036 &middot; Jevons paradox">
+      <div class="cap"><span class="num">036</span> Jevons paradox</div>
+      <img class="face" loading="lazy" src="back/036-jevons-paradox.png" alt="back Jevons paradox">
+      <img class="face" loading="lazy" src="front/036-jevons-paradox.png" alt="front Jevons paradox">
+    </section>
+    <section class="slide" data-label="037 &middot; Peltzman effect">
+      <div class="cap"><span class="num">037</span> Peltzman effect</div>
+      <img class="face" loading="lazy" src="back/037-peltzman-effect.png" alt="back Peltzman effect">
+      <img class="face" loading="lazy" src="front/037-peltzman-effect.png" alt="front Peltzman effect">
+    </section>
+    <section class="slide" data-label="038 &middot; Brandolini's law">
+      <div class="cap"><span class="num">038</span> Brandolini's law</div>
+      <img class="face" loading="lazy" src="back/038-brandolini-s-law.png" alt="back Brandolini's law">
+      <img class="face" loading="lazy" src="front/038-brandolini-s-law.png" alt="front Brandolini's law">
+    </section>
+    <section class="slide" data-label="039 &middot; Cunningham's law">
+      <div class="cap"><span class="num">039</span> Cunningham's law</div>
+      <img class="face" loading="lazy" src="back/039-cunningham-s-law.png" alt="back Cunningham's law">
+      <img class="face" loading="lazy" src="front/039-cunningham-s-law.png" alt="front Cunningham's law">
+    </section>
+    <section class="slide" data-label="040 &middot; Gell-Mann amnesia effect">
+      <div class="cap"><span class="num">040</span> Gell-Mann amnesia effect</div>
+      <img class="face" loading="lazy" src="back/040-gell-mann-effect.png" alt="back Gell-Mann effect">
+      <img class="face" loading="lazy" src="front/040-gell-mann-effect.png" alt="front Gell-Mann amnesia effect">
+    </section>
+    <section class="slide" data-label="041 &middot; Godwin's law">
+      <div class="cap"><span class="num">041</span> Godwin's law</div>
+      <img class="face" loading="lazy" src="back/041-godwin-s-law.png" alt="back Godwin's law">
+      <img class="face" loading="lazy" src="front/041-godwin-s-law.png" alt="front Godwin's law">
+    </section>
+    <section class="slide" data-label="042 &middot; Poe's law">
+      <div class="cap"><span class="num">042</span> Poe's law</div>
+      <img class="face" loading="lazy" src="back/042-poe-s-law.png" alt="back Poe's law">
+      <img class="face" loading="lazy" src="front/042-poe-s-law.png" alt="front Poe's law">
+    </section>
+    <section class="slide" data-label="043 &middot; Danth's law">
+      <div class="cap"><span class="num">043</span> Danth's law</div>
+      <img class="face" loading="lazy" src="back/043-danth-s-law.png" alt="back Danth's law">
+      <img class="face" loading="lazy" src="front/043-danth-s-law.png" alt="front Danth's law">
+    </section>
+    <section class="slide" data-label="044 &middot; Bechdel test">
+      <div class="cap"><span class="num">044</span> Bechdel test</div>
+      <img class="face" loading="lazy" src="back/044-bechdel-test.png" alt="back Bechdel test">
+      <img class="face" loading="lazy" src="front/044-bechdel-test.png" alt="front Bechdel test">
+    </section>
+    <section class="slide" data-label="045 &middot; Betteridge's law of headlines">
+      <div class="cap"><span class="num">045</span> Betteridge's law of headlines</div>
+      <img class="face" loading="lazy" src="back/045-betteridge-s-law.png" alt="back Betteridge's law">
+      <img class="face" loading="lazy" src="front/045-betteridge-s-law.png" alt="front Betteridge's law of headlines">
+    </section>
+    <section class="slide" data-label="046 &middot; Chekhov's gun">
+      <div class="cap"><span class="num">046</span> Chekhov's gun</div>
+      <img class="face" loading="lazy" src="back/046-chekhov-s-gun.png" alt="back Chekhov's gun">
+      <img class="face" loading="lazy" src="front/046-chekhov-s-gun.png" alt="front Chekhov's gun">
+    </section>
+    <section class="slide" data-label="047 &middot; Sturgeon's law">
+      <div class="cap"><span class="num">047</span> Sturgeon's law</div>
+      <img class="face" loading="lazy" src="back/047-sturgeon-s-law.png" alt="back Sturgeon's law">
+      <img class="face" loading="lazy" src="front/047-sturgeon-s-law.png" alt="front Sturgeon's law">
+    </section>
+    <section class="slide" data-label="048 &middot; Occam's razor">
+      <div class="cap"><span class="num">048</span> Occam's razor</div>
+      <img class="face" loading="lazy" src="back/048-occam-s-razor.png" alt="back Occam's razor">
+      <img class="face" loading="lazy" src="front/048-occam-s-razor.png" alt="front Occam's razor">
+    </section>
+    <section class="slide" data-label="049 &middot; Hanlon's razor">
+      <div class="cap"><span class="num">049</span> Hanlon's razor</div>
+      <img class="face" loading="lazy" src="back/049-hanlon-s-razor.png" alt="back Hanlon's razor">
+      <img class="face" loading="lazy" src="front/049-hanlon-s-razor.png" alt="front Hanlon's razor">
+    </section>
+    <section class="slide" data-label="050 &middot; Hitchens's razor">
+      <div class="cap"><span class="num">050</span> Hitchens's razor</div>
+      <img class="face" loading="lazy" src="back/050-hitchens-s-razor.png" alt="back Hitchens's razor">
+      <img class="face" loading="lazy" src="front/050-hitchens-s-razor.png" alt="front Hitchens's razor">
+    </section>
+    <section class="slide" data-label="051 &middot; Sagan standard">
+      <div class="cap"><span class="num">051</span> Sagan standard</div>
+      <img class="face" loading="lazy" src="back/051-sagan-standard.png" alt="back Sagan standard">
+      <img class="face" loading="lazy" src="front/051-sagan-standard.png" alt="front Sagan standard">
+    </section>
+    <section class="slide" data-label="052 &middot; Chesterton's fence">
+      <div class="cap"><span class="num">052</span> Chesterton's fence</div>
+      <img class="face" loading="lazy" src="back/052-chesterton-s-fence.png" alt="back Chesterton's fence">
+      <img class="face" loading="lazy" src="front/052-chesterton-s-fence.png" alt="front Chesterton's fence">
+    </section>
+    <section class="slide" data-label="053 &middot; Cromwell's rule">
+      <div class="cap"><span class="num">053</span> Cromwell's rule</div>
+      <img class="face" loading="lazy" src="back/053-cromwell-s-rule.png" alt="back Cromwell's rule">
+      <img class="face" loading="lazy" src="front/053-cromwell-s-rule.png" alt="front Cromwell's rule">
+    </section>
+    <section class="slide" data-label="054 &middot; Newton's flaming laser sword">
+      <div class="cap"><span class="num">054</span> Newton's flaming laser sword</div>
+      <img class="face" loading="lazy" src="back/054-newton-s-flaming-laser-sword.png" alt="back Newton's flaming laser sword">
+      <img class="face" loading="lazy" src="front/054-newton-s-flaming-laser-sword.png" alt="front Newton's flaming laser sword">
+    </section>
+    <section class="slide" data-label="055 &middot; Hume's law">
+      <div class="cap"><span class="num">055</span> Hume's law</div>
+      <img class="face" loading="lazy" src="back/055-hume-s-law.png" alt="back Hume's law">
+      <img class="face" loading="lazy" src="front/055-hume-s-law.png" alt="front Hume's law">
+    </section>
+    <section class="slide" data-label="056 &middot; Hickam's dictum">
+      <div class="cap"><span class="num">056</span> Hickam's dictum</div>
+      <img class="face" loading="lazy" src="back/056-hickam-s-dictum.png" alt="back Hickam's dictum">
+      <img class="face" loading="lazy" src="front/056-hickam-s-dictum.png" alt="front Hickam's dictum">
+    </section>
+    <section class="slide" data-label="057 &middot; Twyman's law">
+      <div class="cap"><span class="num">057</span> Twyman's law</div>
+      <img class="face" loading="lazy" src="back/057-twyman-s-law.png" alt="back Twyman's law">
+      <img class="face" loading="lazy" src="front/057-twyman-s-law.png" alt="front Twyman's law">
+    </section>
+    <section class="slide" data-label="058 &middot; Segal's law">
+      <div class="cap"><span class="num">058</span> Segal's law</div>
+      <img class="face" loading="lazy" src="back/058-segal-s-law.png" alt="back Segal's law">
+      <img class="face" loading="lazy" src="front/058-segal-s-law.png" alt="front Segal's law">
+    </section>
+    <section class="slide" data-label="059 &middot; Acton's dictum">
+      <div class="cap"><span class="num">059</span> Acton's dictum</div>
+      <img class="face" loading="lazy" src="back/059-acton-s-dictum.png" alt="back Acton's dictum">
+      <img class="face" loading="lazy" src="front/059-acton-s-dictum.png" alt="front Acton's dictum">
+    </section>
+    <section class="slide" data-label="060 &middot; Pareto principle">
+      <div class="cap"><span class="num">060</span> Pareto principle</div>
+      <img class="face" loading="lazy" src="back/060-pareto-principle.png" alt="back Pareto principle">
+      <img class="face" loading="lazy" src="front/060-pareto-principle.png" alt="front Pareto principle">
+    </section>
+    <section class="slide" data-label="061 &middot; Duverger's law">
+      <div class="cap"><span class="num">061</span> Duverger's law</div>
+      <img class="face" loading="lazy" src="back/061-duverger-s-law.png" alt="back Duverger's law">
+      <img class="face" loading="lazy" src="front/061-duverger-s-law.png" alt="front Duverger's law">
+    </section>
+    <section class="slide" data-label="062 &middot; Crane's law">
+      <div class="cap"><span class="num">062</span> Crane's law</div>
+      <img class="face" loading="lazy" src="back/062-crane-s-law.png" alt="back Crane's law">
+      <img class="face" loading="lazy" src="front/062-crane-s-law.png" alt="front Crane's law">
+    </section>
+    <section class="slide" data-label="063 &middot; Coase theorem">
+      <div class="cap"><span class="num">063</span> Coase theorem</div>
+      <img class="face" loading="lazy" src="back/063-coase-theorem.png" alt="back Coase theorem">
+      <img class="face" loading="lazy" src="front/063-coase-theorem.png" alt="front Coase theorem">
+    </section>
+    <section class="slide" data-label="064 &middot; Hotelling's law">
+      <div class="cap"><span class="num">064</span> Hotelling's law</div>
+      <img class="face" loading="lazy" src="back/064-hotelling-s-law.png" alt="back Hotelling's law">
+      <img class="face" loading="lazy" src="front/064-hotelling-s-law.png" alt="front Hotelling's law">
+    </section>
+    <section class="slide" data-label="065 &middot; Say's law">
+      <div class="cap"><span class="num">065</span> Say's law</div>
+      <img class="face" loading="lazy" src="back/065-say-s-law.png" alt="back Say's law">
+      <img class="face" loading="lazy" src="front/065-say-s-law.png" alt="front Say's law">
+    </section>
+    <section class="slide" data-label="066 &middot; Minsky moment">
+      <div class="cap"><span class="num">066</span> Minsky moment</div>
+      <img class="face" loading="lazy" src="back/066-minsky-moment.png" alt="back Minsky moment">
+      <img class="face" loading="lazy" src="front/066-minsky-moment.png" alt="front Minsky moment">
+    </section>
+    <section class="slide" data-label="067 &middot; Baumol's cost disease">
+      <div class="cap"><span class="num">067</span> Baumol's cost disease</div>
+      <img class="face" loading="lazy" src="back/067-baumol-s-disease.png" alt="back Baumol's disease">
+      <img class="face" loading="lazy" src="front/067-baumol-s-disease.png" alt="front Baumol's cost disease">
+    </section>
+    <section class="slide" data-label="068 &middot; Veblen good">
+      <div class="cap"><span class="num">068</span> Veblen good</div>
+      <img class="face" loading="lazy" src="back/068-veblen-good.png" alt="back Veblen good">
+      <img class="face" loading="lazy" src="front/068-veblen-good.png" alt="front Veblen good">
+    </section>
+    <section class="slide" data-label="069 &middot; Ricardo's law of comparative advantage">
+      <div class="cap"><span class="num">069</span> Ricardo's law of comparative advantage</div>
+      <img class="face" loading="lazy" src="back/069-ricardo-s-law.png" alt="back Ricardo's law">
+      <img class="face" loading="lazy" src="front/069-ricardo-s-law.png" alt="front Ricardo's law of comparative advantage">
+    </section>
+    <section class="slide" data-label="070 &middot; Dunbar's number">
+      <div class="cap"><span class="num">070</span> Dunbar's number</div>
+      <img class="face" loading="lazy" src="back/070-dunbar-s-number.png" alt="back Dunbar's number">
+      <img class="face" loading="lazy" src="front/070-dunbar-s-number.png" alt="front Dunbar's number">
+    </section>
+    <section class="slide" data-label="071 &middot; Maslow's hammer">
+      <div class="cap"><span class="num">071</span> Maslow's hammer</div>
+      <img class="face" loading="lazy" src="back/071-maslow-s-hammer.png" alt="back Maslow's hammer">
+      <img class="face" loading="lazy" src="front/071-maslow-s-hammer.png" alt="front Maslow's hammer">
+    </section>
+    <section class="slide" data-label="072 &middot; Rosenthal (Pygmalion) effect">
+      <div class="cap"><span class="num">072</span> Rosenthal (Pygmalion) effect</div>
+      <img class="face" loading="lazy" src="back/072-rosenthal-effect.png" alt="back Rosenthal effect">
+      <img class="face" loading="lazy" src="front/072-rosenthal-effect.png" alt="front Rosenthal (Pygmalion) effect">
+    </section>
+    <section class="slide" data-label="073 &middot; Sapir–Whorf hypothesis">
+      <div class="cap"><span class="num">073</span> Sapir–Whorf hypothesis</div>
+      <img class="face" loading="lazy" src="back/073-sapir-whorf-hypothesis.png" alt="back Sapir–Whorf hypothesis">
+      <img class="face" loading="lazy" src="front/073-sapir-whorf-hypothesis.png" alt="front Sapir–Whorf hypothesis">
+    </section>
+    <section class="slide" data-label="074 &middot; Semmelweis reflex">
+      <div class="cap"><span class="num">074</span> Semmelweis reflex</div>
+      <img class="face" loading="lazy" src="back/074-semmelweis-reflex.png" alt="back Semmelweis reflex">
+      <img class="face" loading="lazy" src="front/074-semmelweis-reflex.png" alt="front Semmelweis reflex">
+    </section>
+    <section class="slide" data-label="075 &middot; Zeigarnik effect">
+      <div class="cap"><span class="num">075</span> Zeigarnik effect</div>
+      <img class="face" loading="lazy" src="back/075-zeigarnik-effect.png" alt="back Zeigarnik effect">
+      <img class="face" loading="lazy" src="front/075-zeigarnik-effect.png" alt="front Zeigarnik effect">
+    </section>
+    <section class="slide" data-label="076 &middot; Baader–Meinhof phenomenon">
+      <div class="cap"><span class="num">076</span> Baader–Meinhof phenomenon</div>
+      <img class="face" loading="lazy" src="back/076-baader-meinhof-phenomenon.png" alt="back Baader–Meinhof phenomenon">
+      <img class="face" loading="lazy" src="front/076-baader-meinhof-phenomenon.png" alt="front Baader–Meinhof phenomenon">
+    </section>
+    <section class="slide" data-label="077 &middot; Ben Franklin effect">
+      <div class="cap"><span class="num">077</span> Ben Franklin effect</div>
+      <img class="face" loading="lazy" src="back/077-ben-franklin-effect.png" alt="back Ben Franklin effect">
+      <img class="face" loading="lazy" src="front/077-ben-franklin-effect.png" alt="front Ben Franklin effect">
+    </section>
+    <section class="slide" data-label="078 &middot; Diderot effect">
+      <div class="cap"><span class="num">078</span> Diderot effect</div>
+      <img class="face" loading="lazy" src="back/078-diderot-effect.png" alt="back Diderot effect">
+      <img class="face" loading="lazy" src="front/078-diderot-effect.png" alt="front Diderot effect">
+    </section>
+    <section class="slide" data-label="079 &middot; Barnum (Forer) effect">
+      <div class="cap"><span class="num">079</span> Barnum (Forer) effect</div>
+      <img class="face" loading="lazy" src="back/079-barnum-effect.png" alt="back Barnum effect">
+      <img class="face" loading="lazy" src="front/079-barnum-effect.png" alt="front Barnum (Forer) effect">
+    </section>
+    <section class="slide" data-label="080 &middot; Hick's law">
+      <div class="cap"><span class="num">080</span> Hick's law</div>
+      <img class="face" loading="lazy" src="back/080-hick-s-law.png" alt="back Hick's law">
+      <img class="face" loading="lazy" src="front/080-hick-s-law.png" alt="front Hick's law">
+    </section>
+    <section class="slide" data-label="081 &middot; Miller's law (7±2)">
+      <div class="cap"><span class="num">081</span> Miller's law (7±2)</div>
+      <img class="face" loading="lazy" src="back/081-miller-s-law.png" alt="back Miller's law">
+      <img class="face" loading="lazy" src="front/081-miller-s-law.png" alt="front Miller's law (7±2)">
+    </section>
+    <section class="slide" data-label="082 &middot; Von Restorff effect">
+      <div class="cap"><span class="num">082</span> Von Restorff effect</div>
+      <img class="face" loading="lazy" src="back/082-von-restorff-effect.png" alt="back Von Restorff effect">
+      <img class="face" loading="lazy" src="front/082-von-restorff-effect.png" alt="front Von Restorff effect">
+    </section>
+    <section class="slide" data-label="083 &middot; Maslow's hierarchy of needs">
+      <div class="cap"><span class="num">083</span> Maslow's hierarchy of needs</div>
+      <img class="face" loading="lazy" src="back/083-maslow-s-hierarchy.png" alt="back Maslow's hierarchy">
+      <img class="face" loading="lazy" src="front/083-maslow-s-hierarchy.png" alt="front Maslow's hierarchy of needs">
+    </section>
+    <section class="slide" data-label="084 &middot; Ebbinghaus forgetting curve">
+      <div class="cap"><span class="num">084</span> Ebbinghaus forgetting curve</div>
+      <img class="face" loading="lazy" src="back/084-ebbinghaus-curve.png" alt="back Ebbinghaus curve">
+      <img class="face" loading="lazy" src="front/084-ebbinghaus-curve.png" alt="front Ebbinghaus forgetting curve">
+    </section>
+    <section class="slide" data-label="085 &middot; Weber–Fechner law">
+      <div class="cap"><span class="num">085</span> Weber–Fechner law</div>
+      <img class="face" loading="lazy" src="back/085-weber-fechner-law.png" alt="back Weber–Fechner law">
+      <img class="face" loading="lazy" src="front/085-weber-fechner-law.png" alt="front Weber–Fechner law">
+    </section>
+    <section class="slide" data-label="086 &middot; Bayes' theorem">
+      <div class="cap"><span class="num">086</span> Bayes' theorem</div>
+      <img class="face" loading="lazy" src="back/086-bayes-theorem.png" alt="back Bayes' theorem">
+      <img class="face" loading="lazy" src="front/086-bayes-theorem.png" alt="front Bayes' theorem">
+    </section>
+    <section class="slide" data-label="087 &middot; Leibniz's law">
+      <div class="cap"><span class="num">087</span> Leibniz's law</div>
+      <img class="face" loading="lazy" src="back/087-leibniz-s-law.png" alt="back Leibniz's law">
+      <img class="face" loading="lazy" src="front/087-leibniz-s-law.png" alt="front Leibniz's law">
+    </section>
+    <section class="slide" data-label="088 &middot; Arrow's impossibility theorem">
+      <div class="cap"><span class="num">088</span> Arrow's impossibility theorem</div>
+      <img class="face" loading="lazy" src="back/088-arrow-s-theorem.png" alt="back Arrow's theorem">
+      <img class="face" loading="lazy" src="front/088-arrow-s-theorem.png" alt="front Arrow's impossibility theorem">
+    </section>
+    <section class="slide" data-label="089 &middot; Benford's law">
+      <div class="cap"><span class="num">089</span> Benford's law</div>
+      <img class="face" loading="lazy" src="back/089-benford-s-law.png" alt="back Benford's law">
+      <img class="face" loading="lazy" src="front/089-benford-s-law.png" alt="front Benford's law">
+    </section>
+    <section class="slide" data-label="090 &middot; Zipf's law">
+      <div class="cap"><span class="num">090</span> Zipf's law</div>
+      <img class="face" loading="lazy" src="back/090-zipf-s-law.png" alt="back Zipf's law">
+      <img class="face" loading="lazy" src="front/090-zipf-s-law.png" alt="front Zipf's law">
+    </section>
+    <section class="slide" data-label="091 &middot; Tobler's first law of geography">
+      <div class="cap"><span class="num">091</span> Tobler's first law of geography</div>
+      <img class="face" loading="lazy" src="back/091-tobler-s-first-law.png" alt="back Tobler's first law">
+      <img class="face" loading="lazy" src="front/091-tobler-s-first-law.png" alt="front Tobler's first law of geography">
+    </section>
+    <section class="slide" data-label="092 &middot; Simpson's paradox">
+      <div class="cap"><span class="num">092</span> Simpson's paradox</div>
+      <img class="face" loading="lazy" src="back/092-simpson-s-paradox.png" alt="back Simpson's paradox">
+      <img class="face" loading="lazy" src="front/092-simpson-s-paradox.png" alt="front Simpson's paradox">
+    </section>
+    <section class="slide" data-label="093 &middot; Shannon information">
+      <div class="cap"><span class="num">093</span> Shannon information</div>
+      <img class="face" loading="lazy" src="back/093-shannon-information.png" alt="back Shannon information">
+      <img class="face" loading="lazy" src="front/093-shannon-information.png" alt="front Shannon information">
+    </section>
+    <section class="slide" data-label="094 &middot; Russell's paradox">
+      <div class="cap"><span class="num">094</span> Russell's paradox</div>
+      <img class="face" loading="lazy" src="back/094-russell-s-paradox.png" alt="back Russell's paradox">
+      <img class="face" loading="lazy" src="front/094-russell-s-paradox.png" alt="front Russell's paradox">
+    </section>
+    <section class="slide" data-label="095 &middot; Gödel's first incompleteness theorem">
+      <div class="cap"><span class="num">095</span> Gödel's first incompleteness theorem</div>
+      <img class="face" loading="lazy" src="back/095-gödel-s-incompleteness-theorem.png" alt="back Gödel's incompleteness theorem">
+      <img class="face" loading="lazy" src="front/095-gödel-s-incompleteness-theorem.png" alt="front Gödel's first incompleteness theorem">
+    </section>
+    <section class="slide" data-label="096 &middot; Gödel's completeness theorem">
+      <div class="cap"><span class="num">096</span> Gödel's completeness theorem</div>
+      <img class="face" loading="lazy" src="back/096-gödel-s-completeness-theorem.png" alt="back Gödel's completeness theorem">
+      <img class="face" loading="lazy" src="front/096-gödel-s-completeness-theorem.png" alt="front Gödel's completeness theorem">
+    </section>
+    <section class="slide" data-label="097 &middot; Newton's laws of motion">
+      <div class="cap"><span class="num">097</span> Newton's laws of motion</div>
+      <img class="face" loading="lazy" src="back/097-newton-s-laws.png" alt="back Newton's laws">
+      <img class="face" loading="lazy" src="front/097-newton-s-laws.png" alt="front Newton's laws of motion">
+    </section>
+    <section class="slide" data-label="098 &middot; Maxwell's equations">
+      <div class="cap"><span class="num">098</span> Maxwell's equations</div>
+      <img class="face" loading="lazy" src="back/098-maxwell-s-equations.png" alt="back Maxwell's equations">
+      <img class="face" loading="lazy" src="front/098-maxwell-s-equations.png" alt="front Maxwell's equations">
+    </section>
+    <section class="slide" data-label="099 &middot; Archimedes' principle">
+      <div class="cap"><span class="num">099</span> Archimedes' principle</div>
+      <img class="face" loading="lazy" src="back/099-archimedes-principle.png" alt="back Archimedes' principle">
+      <img class="face" loading="lazy" src="front/099-archimedes-principle.png" alt="front Archimedes' principle">
+    </section>
+    <section class="slide" data-label="100 &middot; Snell's law">
+      <div class="cap"><span class="num">100</span> Snell's law</div>
+      <img class="face" loading="lazy" src="back/100-snell-s-law.png" alt="back Snell's law">
+      <img class="face" loading="lazy" src="front/100-snell-s-law.png" alt="front Snell's law">
+    </section>
+    <section class="slide" data-label="101 &middot; Ohm's acoustic law">
+      <div class="cap"><span class="num">101</span> Ohm's acoustic law</div>
+      <img class="face" loading="lazy" src="back/101-ohm-s-acoustic-law.png" alt="back Ohm's acoustic law">
+      <img class="face" loading="lazy" src="front/101-ohm-s-acoustic-law.png" alt="front Ohm's acoustic law">
+    </section>
+    <section class="slide" data-label="102 &middot; Hubble's law">
+      <div class="cap"><span class="num">102</span> Hubble's law</div>
+      <img class="face" loading="lazy" src="back/102-hubble-s-law.png" alt="back Hubble's law">
+      <img class="face" loading="lazy" src="front/102-hubble-s-law.png" alt="front Hubble's law">
+    </section>
+    <section class="slide" data-label="103 &middot; Fermi paradox">
+      <div class="cap"><span class="num">103</span> Fermi paradox</div>
+      <img class="face" loading="lazy" src="back/103-fermi-paradox.png" alt="back Fermi paradox">
+      <img class="face" loading="lazy" src="front/103-fermi-paradox.png" alt="front Fermi paradox">
+    </section>
+    <section class="slide" data-label="104 &middot; Murphy's law">
+      <div class="cap"><span class="num">104</span> Murphy's law</div>
+      <img class="face" loading="lazy" src="back/104-murphy-s-law.png" alt="back Murphy's law">
+      <img class="face" loading="lazy" src="front/104-murphy-s-law.png" alt="front Murphy's law">
+    </section>
+    <section class="slide" data-label="105 &middot; Lindy effect">
+      <div class="cap"><span class="num">105</span> Lindy effect</div>
+      <img class="face" loading="lazy" src="back/105-lindy-effect.png" alt="back Lindy effect">
+      <img class="face" loading="lazy" src="front/105-lindy-effect.png" alt="front Lindy effect">
+    </section>
+    <section class="slide" data-label="106 &middot; Stein's law">
+      <div class="cap"><span class="num">106</span> Stein's law</div>
+      <img class="face" loading="lazy" src="back/106-stein-s-law.png" alt="back Stein's law">
+      <img class="face" loading="lazy" src="front/106-stein-s-law.png" alt="front Stein's law">
+    </section>
+    <section class="slide" data-label="107 &middot; Littlewood's law">
+      <div class="cap"><span class="num">107</span> Littlewood's law</div>
+      <img class="face" loading="lazy" src="back/107-littlewood-s-law.png" alt="back Littlewood's law">
+      <img class="face" loading="lazy" src="front/107-littlewood-s-law.png" alt="front Littlewood's law">
+    </section>
+    <section class="slide" data-label="108 &middot; Stigler's law of eponymy">
+      <div class="cap"><span class="num">108</span> Stigler's law of eponymy</div>
+      <img class="face" loading="lazy" src="back/108-stigler-s-law.png" alt="back Stigler's law">
+      <img class="face" loading="lazy" src="front/108-stigler-s-law.png" alt="front Stigler's law of eponymy">
+    </section>
+  </div>
+  <script>
+    const track = document.getElementById('track');
+    const pill = document.getElementById('pill');
+    const slides = [...track.children];
+    const total = slides.length;
+    function idx() { return Math.round(track.scrollLeft / track.clientWidth); }
+    function update() {
+      const i = Math.min(total - 1, Math.max(0, idx()));
+      const label = slides[i].dataset.label || '';
+      pill.textContent = label + '   ·   ' + (i + 1) + ' / ' + total;
+    }
+    function go(d) { track.scrollBy({left: d * track.clientWidth, behavior:'smooth'}); }
+    track.addEventListener('scroll', () => requestAnimationFrame(update), {passive:true});
+    document.getElementById('prev').onclick = () => go(-1);
+    document.getElementById('next').onclick = () => go(1);
+    addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    });
+    update();
+  </script>
+</body>
+</html>
