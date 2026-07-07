@@ -1,0 +1,159 @@
+/* ============ CARD SKELETON (uniform → overlap-proof) ============ */
+.card{
+  --w:264px;--gsz:100px;--gfont:inherit;
+  width:var(--w);height:calc(var(--w)*7/5);border-radius:15px;position:relative;overflow:hidden;
+  box-shadow:0 18px 40px -18px rgba(30,25,15,.4),0 2px 6px -2px rgba(30,25,15,.28);display:flex;
+}
+.card .inner{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;
+  align-items:center;justify-content:space-between;padding:22px 18px;text-align:center;gap:6px;}
+.card .tab{flex:0 0 auto;}
+.card .glyph{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;font-size:var(--gsz);line-height:1;font-family:var(--gfont);}
+.card .meta{flex:0 0 auto;width:100%;display:flex;flex-direction:column;gap:3px;}
+.card .name{font-size:20px;line-height:1.15;overflow-wrap:anywhere;}
+.card .ipa{font-size:14px;line-height:1.2;overflow-wrap:anywhere;}
+.card .equiv{font-size:12px;line-height:1.2;overflow-wrap:anywhere;}
+.card.back{align-items:center;justify-content:center}
+.card .binner{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;padding:20px;}
+.card .bglyph{font-size:calc(var(--gsz)*1.5);line-height:1;font-family:var(--gfont);max-width:100%;overflow:hidden;}
+.card .bscript{font-size:12px;text-transform:uppercase;letter-spacing:.24em;}
+
+/* per-script glyph font + size */
+.sc-ipa{--gfont:"Noto Sans","DejaVu Sans",sans-serif;--gsz:80px;}
+.sc-hebrew{--gfont:"Noto Serif Hebrew","Noto Sans Hebrew",serif;--gsz:104px;}
+.sc-greek{--gfont:"Noto Serif","DejaVu Serif",Georgia,serif;--gsz:100px;}
+.sc-cyrillic{--gfont:"Noto Serif","DejaVu Serif",Georgia,serif;--gsz:96px;}
+.sc-armenian{--gfont:"Noto Serif Armenian","Noto Sans Armenian",serif;--gsz:92px;}
+.sc-georgian{--gfont:"Noto Serif Georgian","Noto Sans Georgian",serif;--gsz:98px;}
+.sc-hiragana{--gfont:"Noto Serif CJK JP","Noto Sans CJK JP",serif;--gsz:104px;}
+.sc-korean{--gfont:"Noto Serif CJK KR","Noto Sans CJK KR",serif;--gsz:108px;}
+.sc-ipa .name{font-size:18px}
+.sc-ipa .ipa{font-size:12.5px;color:inherit;opacity:.9}
+
+/* ================= STYLE 1 · FINE PRESS ================= */
+.s1{background:#f3eee3;color:#1c1a17;font-family:"EB Garamond",Georgia,serif;}
+.s1::before{content:"";position:absolute;inset:12px;border:1px solid #b9a98a;border-radius:5px;z-index:1;}
+.s1::after{content:"";position:absolute;inset:16px;border:2.5px solid #1c1a17;border-radius:3px;z-index:1;}
+.s1 .inner{padding:30px 24px}
+.s1 .tab{font-variant:small-caps;letter-spacing:.26em;font-size:12px;color:#7a2e2a;}
+.s1 .name{font-style:italic;}
+.s1 .ipa{font-family:"Helvetica Neue",Arial,sans-serif;color:#7a2e2a;}
+.s1 .equiv{font-variant:small-caps;letter-spacing:.2em;color:#6b6252;}
+.s1.back .bglyph{color:#1c1a17}.s1.back .bscript{color:#7a2e2a}
+.s1 .glyph{--gfont:"Noto Serif Hebrew","Noto Serif","Noto Serif Georgian","Noto Serif Armenian",serif}
+
+/* ================= STYLE 2 · ART DECO ================= */
+.s2{background:radial-gradient(120% 85% at 50% 0%,#1b1b20,#0e0e10 72%);color:#e9dcb8;
+  font-family:"Jost","Century Gothic",sans-serif;}
+.s2::before{content:"";position:absolute;inset:11px;border:1.5px solid #c9a24b;border-radius:3px;z-index:1;}
+.s2::after{content:"";position:absolute;inset:16px;border:1px solid #7d612a;border-radius:2px;z-index:1;}
+.s2 .inner{padding:28px 20px}
+.s2 .tab{letter-spacing:.36em;font-size:11px;color:#c9a24b;text-transform:uppercase;}
+.s2 .glyph{color:#eddca0;text-shadow:0 0 16px rgba(201,162,75,.22);}
+.s2 .name{letter-spacing:.24em;text-transform:uppercase;font-size:16px;}
+.s2 .ipa{letter-spacing:.08em;color:#c9a24b;}
+.s2 .equiv{letter-spacing:.24em;text-transform:uppercase;font-size:11px;color:#9c8a5e;}
+.s2.back{color:#eddca0}.s2.back .bglyph{color:#eddca0}.s2.back .bscript{color:#c9a24b}
+
+/* ================= STYLE 3 · SWISS INTERNATIONAL ================= */
+.s3{background:#ffffff;color:#111;font-family:"Archivo","Helvetica Neue",Arial,sans-serif;}
+.s3::before{content:"";position:absolute;left:0;top:0;width:6px;height:100%;background:#e2231a;z-index:2;}
+.s3 .inner{align-items:flex-start;text-align:left;padding:22px 20px 22px 24px;}
+.s3 .tab{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.02em;}
+.s3 .glyph{justify-content:flex-start;align-items:flex-end;width:100%;}
+.s3 .meta{align-items:flex-start;text-align:left}
+.s3 .name{font-weight:700}
+.s3 .ipa{color:#111}
+.s3 .equiv{color:#e2231a;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.02em;}
+.s3.back .bglyph{color:#111}.s3.back .bscript{color:#e2231a}
+
+/* ================= STYLE 4 · NATURALIST PLATE ================= */
+.s4{background:#ece3d1;color:#3a2e22;font-family:"EB Garamond",Georgia,serif;}
+.s4::before{content:"";position:absolute;inset:13px;border:1px solid #8c7a5c;z-index:1;}
+.s4::after{content:"";position:absolute;inset:17px;border:1px solid #c3b596;z-index:1;}
+.s4 .inner{padding:28px 22px}
+.s4 .tab{font-variant:small-caps;letter-spacing:.22em;font-size:12px;color:#6f5f45;}
+.s4 .glyph{color:#2c2117}
+.s4 .name{font-style:italic}
+.s4 .ipa{font-family:"Helvetica Neue",Arial,sans-serif;font-size:13px;letter-spacing:.04em;color:#6a5a3f;}
+.s4 .equiv{font-variant:small-caps;letter-spacing:.14em;color:#8c7a5c;}
+.s4.back .bglyph{color:#2c2117}.s4.back .bscript{color:#6f5f45;font-variant:small-caps;text-transform:none;letter-spacing:.12em}
+
+/* ================= STYLE 5 · BAUHAUS ================= */
+.s5{background:#f4f1e8;color:#141414;font-family:"Jost","Century Gothic",sans-serif;}
+.s5::before{content:"";position:absolute;width:96px;height:96px;border-radius:50%;background:#1e4fd8;top:-22px;right:-22px;z-index:1;}
+.s5::after{content:"";position:absolute;width:0;height:0;border-left:52px solid transparent;
+  border-right:52px solid transparent;border-bottom:90px solid #f4c025;bottom:-14px;left:-14px;z-index:1;}
+.s5 .inner{padding:20px 18px}
+.s5 .tab{text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:700;align-self:flex-start;}
+.s5 .glyph{font-weight:700;color:#141414}
+.s5 .name{text-transform:uppercase;letter-spacing:.14em;font-weight:700;font-size:15px;}
+.s5 .ipa{color:#1e4fd8;font-weight:700}
+.s5 .equiv{text-transform:uppercase;letter-spacing:.1em;font-size:11px;color:#e23a2e;font-weight:700;}
+.s5.back .bglyph{color:#141414;font-weight:700}.s5.back .bscript{color:#1e4fd8}
+
+/* ================= STYLE 6 · ILLUMINATED ================= */
+.s6{background:radial-gradient(140% 100% at 50% 0%,#efe4c6,#e2d3ac);color:#2a1a0e;font-family:"EB Garamond",Georgia,serif;}
+.s6::before{content:"";position:absolute;inset:11px;border:2px solid #b8912e;border-radius:3px;
+  box-shadow:inset 0 0 0 3px #e9dec2,inset 0 0 0 4.5px #7a3b2e;z-index:1;}
+.s6 .inner{padding:28px 22px}
+.s6 .tab{letter-spacing:.18em;font-size:11px;color:#7a3b2e;text-transform:uppercase;}
+.s6 .glyph{color:#5a1f14;text-shadow:1px 1px 0 #b8912e,2px 2px 0 rgba(184,145,46,.35);}
+.s6 .name{font-style:italic}
+.s6 .ipa{font-family:"Helvetica Neue",Arial,sans-serif;font-size:13px;color:#24407a;letter-spacing:.04em;}
+.s6 .equiv{letter-spacing:.16em;font-size:11px;color:#7a3b2e;text-transform:uppercase;}
+.s6.back .bglyph{color:#5a1f14;text-shadow:1px 1px 0 #b8912e}.s6.back .bscript{color:#7a3b2e}
+
+/* ================= STYLE 7 · SUMI-E / ZEN ================= */
+.s7{background:#f4f1e9;color:#17130f;font-family:"EB Garamond",Georgia,serif;}
+.s7::before{content:"";position:absolute;top:50%;left:50%;width:172px;height:172px;
+  transform:translate(-50%,-56%) rotate(-20deg);border:7px solid #17130f;border-radius:50%;
+  border-right-color:transparent;opacity:.06;z-index:1;}
+.s7::after{content:"";position:absolute;bottom:20px;right:20px;width:30px;height:30px;background:#c0392b;border-radius:3px;z-index:2;}
+.s7 .inner{padding:26px 20px}
+.s7 .tab{letter-spacing:.34em;font-size:10.5px;color:#8a7f70;text-transform:uppercase;}
+.s7 .glyph{color:#17130f}
+.s7 .name{letter-spacing:.12em}
+.s7 .ipa{font-family:"Helvetica Neue",Arial,sans-serif;font-size:13px;color:#6b6152;letter-spacing:.06em;}
+.s7 .equiv{font-family:"Helvetica Neue",Arial,sans-serif;letter-spacing:.16em;font-size:11px;color:#8a7f70;text-transform:uppercase;}
+.s7.back .bglyph{color:#17130f}.s7.back .bscript{color:#8a7f70}
+
+/* ================= STYLE 8 · EDITORIAL DIDONE ================= */
+.s8{background:#fbfaf8;color:#111;font-family:Didot,"Bodoni MT","EB Garamond",Georgia,serif;}
+.s8 .inner{padding:20px 22px}
+.s8 .tab{border-top:1px solid #111;border-bottom:1px solid #111;padding:6px 0;width:100%;
+  font-family:"Helvetica Neue",Arial,sans-serif;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;}
+.s8 .name{font-size:26px;letter-spacing:.01em;}
+.s8 .ipa{font-family:"Helvetica Neue",Arial,sans-serif;font-size:13px;letter-spacing:.08em;color:#555;}
+.s8 .equiv{font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:#999;border-top:1px solid #ddd;padding-top:6px;margin-top:2px;}
+.s8.back .bglyph{color:#111}.s8.back .bscript{color:#111}
+
+/* ================= STYLE 9 · BLUEPRINT ================= */
+.s9{background:#0f2440;color:#e8f1f7;
+  background-image:linear-gradient(rgba(95,211,243,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(95,211,243,.10) 1px,transparent 1px);
+  background-size:22px 22px;font-family:"Space Mono",ui-monospace,monospace;}
+.s9::before{content:"";position:absolute;inset:12px;border:1px solid #5fd3f3;opacity:.5;z-index:1;}
+.s9 .inner{padding:24px 20px}
+.s9 .tab{font-size:10px;letter-spacing:.12em;color:#5fd3f3;align-self:flex-start;}
+.s9 .glyph{color:#e8f1f7}
+.s9 .name{font-size:15px;letter-spacing:.08em;color:#5fd3f3;}
+.s9 .ipa{font-size:12px;color:#e8f1f7}
+.s9 .equiv{font-size:11px;color:#7f9bb5;letter-spacing:.03em;}
+.s9.back .bglyph{color:#e8f1f7}.s9.back .bscript{color:#5fd3f3}
+
+/* ================= STYLE 10 · MIDCENTURY MODERN ================= */
+.s10{background:#ece4d3;color:#2b2621;font-family:"Zilla Slab","Roboto Slab",Georgia,serif;}
+.s10::before{content:"";position:absolute;top:0;left:0;right:0;height:50%;background:#2c6e6a;z-index:1;}
+.s10::after{content:"";position:absolute;top:22px;right:22px;width:14px;height:14px;border-radius:50%;border:3px solid #d9a521;z-index:2;}
+.s10 .inner{display:grid;grid-template-rows:50% 50%;padding:0;gap:0;}
+.s10 .tab{position:absolute;top:20px;left:22px;color:#ece4d3;text-transform:uppercase;letter-spacing:.16em;
+  font-size:11px;z-index:2;font-family:"Helvetica Neue",Arial,sans-serif;}
+.s10 .glyph{grid-row:1;color:#ece4d3;align-self:center;padding:8px 14px 0;}
+.s10 .meta{grid-row:2;align-self:center;padding:0 16px;}
+.s10 .name{text-transform:uppercase;letter-spacing:.14em;font-size:17px;color:#b4462f;}
+.s10 .ipa{font-family:"Helvetica Neue",Arial,sans-serif;font-size:14px;color:#2b2621;}
+.s10 .equiv{font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:#7a7266;}
+.s10.back::before{height:100%}
+.s10.back .bglyph{color:#ece4d3}.s10.back .bscript{color:#d9a521}

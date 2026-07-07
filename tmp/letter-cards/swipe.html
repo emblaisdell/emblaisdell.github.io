@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Letter Cards — study</title>
+<style>
+  :root{ --bg:#e6e2d8; --ink:#2a2620; --soft:#6b665c; --gray:#9a9484; --line:#cfc9bb; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"Palatino Linotype",Georgia,serif;line-height:1.4;overflow:hidden;-webkit-font-smoothing:antialiased;}
+
+  .track{display:flex;height:100vh;height:100dvh;overflow-x:auto;overflow-y:hidden;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .track::-webkit-scrollbar{display:none}
+  .slide{flex:0 0 100%;scroll-snap-align:center;height:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px 18px;}
+  .cap{font-size:14px;color:var(--soft);text-align:center;letter-spacing:.02em;}
+  .cap .num{color:var(--gray);font-variant-numeric:tabular-nums;margin-right:8px;}
+  .cap .g{margin-left:8px;color:var(--gray)}
+  .facekey{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:var(--gray);}
+  .face{max-width:88vw;max-height:39vh;width:auto;height:auto;object-fit:contain;
+    border-radius:12px;box-shadow:0 10px 30px -10px rgba(30,25,15,.4),0 2px 6px -3px rgba(30,25,15,.3);}
+
+  .intro{gap:14px}
+  .intro h1{font-size:clamp(34px,9vw,52px);font-weight:600;margin:0;letter-spacing:-.01em;text-wrap:balance;}
+  .intro .sub{color:var(--soft);font-style:italic;margin:8px 0 0;font-size:16px;}
+  .intro .hint{color:var(--gray);text-transform:uppercase;font-size:12px;letter-spacing:2px;margin-top:26px;}
+  .intro .chip{font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;text-transform:uppercase;
+    letter-spacing:.14em;color:var(--soft);border:1px solid var(--line);border-radius:100px;padding:6px 14px;margin-top:14px;display:inline-block;}
+
+  .pill{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+    background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:20px;padding:6px 15px;
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:12.5px;color:var(--soft);letter-spacing:.4px;
+    z-index:10;backdrop-filter:blur(4px);max-width:86vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .nav{position:fixed;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+    border:1px solid var(--line);background:rgba(255,255,255,.85);color:var(--soft);font-size:20px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;user-select:none;}
+  .nav.prev{left:12px}.nav.next{right:12px}
+  @media (hover:none){.nav{display:none}}
+  .home{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gray);text-decoration:none;z-index:10;border:1px solid var(--line);border-radius:100px;
+    padding:5px 13px;background:rgba(255,255,255,.7);}
+</style>
+</head>
+<body>
+  <div class="pill" id="pill"></div>
+  <div class="nav prev" id="prev">&lsaquo;</div>
+  <div class="nav next" id="next">&rsaquo;</div>
+  <a class="home" href="index.html">↺ change deck</a>
+  <div class="track" id="track"></div>
+
+  <script src="data.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    let scriptId = params.get("script"); let styleId = params.get("style");
+    if(!SCRIPTS[scriptId]) scriptId = "hebrew";
+    if(!STYLES.some(s=>s[0]===styleId)) styleId = "s1";
+    const S = SCRIPTS[scriptId];
+    const styleName = STYLES.find(s=>s[0]===styleId)[1];
+    const cards = S.cards.filter(c=>c[0]);
+    const track = document.getElementById("track");
+    const pad2 = n => String(n).padStart(2,"0");
+    const img = (i,face)=>`cards/${styleId}/${scriptId}/${pad2(i+1)}-${face}.webp`;
+
+    let html = `<section class="slide intro" data-label="${esc(S.label)} · ${esc(styleName)}">
+      <h1>${esc(S.label)}</h1>
+      <p class="sub">${cards.length} cards · ${esc(styleName)} style</p>
+      <span class="chip">prompt on top · answer below</span>
+      <p class="hint">swipe to study &rarr;</p>
+    </section>`;
+
+    cards.forEach((c,i)=>{
+      const cap = `<span class="num">${pad2(i+1)}</span>${esc(c[1]||c[0])}<span class="g">${esc(c[0])}</span>`;
+      html += `<section class="slide" data-label="${esc(c[1]||c[0])}">
+        <div class="cap">${cap}</div>
+        <div class="facekey">prompt</div>
+        <img class="face" loading="lazy" src="${img(i,'b')}" alt="prompt ${esc(c[1]||c[0])}">
+        <div class="facekey">answer</div>
+        <img class="face" loading="lazy" src="${img(i,'f')}" alt="answer ${esc(c[1]||c[0])}">
+      </section>`;
+    });
+    track.innerHTML = html;
+
+    const slides=[...track.children], total=slides.length;
+    const pill=document.getElementById("pill");
+    const idx=()=>Math.round(track.scrollLeft/track.clientWidth);
+    function update(){
+      const i=Math.min(total-1,Math.max(0,idx()));
+      pill.textContent=(slides[i].dataset.label||"")+"   ·   "+(i+1)+" / "+total;
+    }
+    function go(d){track.scrollBy({left:d*track.clientWidth,behavior:"smooth"});}
+    track.addEventListener("scroll",()=>requestAnimationFrame(update),{passive:true});
+    document.getElementById("prev").onclick=()=>go(-1);
+    document.getElementById("next").onclick=()=>go(1);
+    addEventListener("keydown",e=>{ if(e.key==="ArrowRight")go(1); if(e.key==="ArrowLeft")go(-1); });
+    const startCard = parseInt(params.get("card"),10);
+    if(startCard>=1 && startCard<=cards.length){ track.scrollLeft = startCard * track.clientWidth; }
+    update();
+  </script>
+</body>
+</html>

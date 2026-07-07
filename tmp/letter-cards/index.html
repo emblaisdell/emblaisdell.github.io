@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Letter Cards — choose a deck</title>
+<style>
+  :root{ --bg:#e6e2d8; --panel:#f3f0e8; --ink:#2a2620; --soft:#6b665c; --gray:#9a9484;
+    --line:#cfc9bb; --accent:#7a2e2a; }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"Helvetica Neue",Arial,"Liberation Sans",sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:44px 22px 64px;}
+  h1{font-family:"Palatino Linotype",Georgia,serif;font-weight:600;font-size:clamp(30px,6vw,46px);
+    letter-spacing:-.01em;margin:0 0 8px;text-wrap:balance;}
+  .lede{color:var(--soft);max-width:60ch;margin:0 0 8px;font-size:15.5px;font-family:"Palatino Linotype",Georgia,serif;}
+
+  .layout{display:grid;grid-template-columns:1fr 300px;gap:34px;align-items:start;margin-top:30px;}
+  @media (max-width:760px){ .layout{grid-template-columns:1fr;gap:26px} .preview-col{order:-1} }
+
+  .group{margin-bottom:26px;}
+  .group h2{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--gray);margin:0 0 12px;font-weight:700;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  button.chip{font:inherit;font-size:13px;padding:7px 13px;border-radius:100px;cursor:pointer;
+    border:1px solid var(--line);background:var(--panel);color:var(--ink);transition:.12s;line-height:1.2;}
+  button.chip:hover{border-color:var(--accent);color:var(--accent);}
+  button.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+  button.chip .cnt{opacity:.5;font-size:11px;margin-left:6px;}
+
+  .preview-col{position:sticky;top:24px;display:flex;flex-direction:column;align-items:center;gap:16px;}
+  .pv-frame{display:flex;justify-content:center;align-items:center;width:100%;}
+  .pvimg{width:min(264px,80vw);height:auto;border-radius:14px;cursor:pointer;transition:transform .15s;
+    box-shadow:0 16px 36px -16px rgba(30,25,15,.45),0 2px 6px -3px rgba(30,25,15,.3);display:block;}
+  .pvimg:hover{transform:translateY(-3px)}
+  .pv-cap{font-size:12px;color:var(--gray);text-align:center;font-family:"Palatino Linotype",Georgia,serif;font-style:italic;}
+  .study{display:inline-flex;align-items:center;gap:9px;font-size:15px;font-weight:600;letter-spacing:.01em;
+    background:var(--accent);color:#fff;border:none;border-radius:12px;padding:13px 26px;cursor:pointer;
+    text-decoration:none;box-shadow:0 8px 22px -8px rgba(122,46,42,.6);transition:.15s;}
+  .study:hover{transform:translateY(-2px);box-shadow:0 12px 26px -8px rgba(122,46,42,.7);}
+  .study .arrow{font-size:18px;line-height:1}
+  .fliphint{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.12em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Letter Cards</h1>
+  <p class="lede">Flash cards for the world's writing systems. Pick a script and a visual style,
+    then swipe through the deck — the glyph is the prompt, the full card is the answer.</p>
+
+  <div class="layout">
+    <div class="controls-col">
+      <div class="group">
+        <h2>Script</h2>
+        <div class="chips" id="scriptChips"></div>
+      </div>
+      <div class="group">
+        <h2>Style</h2>
+        <div class="chips" id="styleChips"></div>
+      </div>
+    </div>
+
+    <div class="preview-col">
+      <div class="pv-frame" id="pvFrame"></div>
+      <div class="pv-cap" id="pvCap"></div>
+      <a class="study" id="studyBtn" href="#">Study deck <span class="arrow">&rarr;</span></a>
+      <div class="fliphint">tap the card to flip it</div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+  // a nice representative glyph per script for the preview
+  const FEATURED = {ipa:16, hebrew:20, greek:7, cyrillic:7, armenian:9, georgian:24, hiragana:31, korean:0};
+  let curScript = "hebrew", curStyle = "s1", showBack = false;
+
+  const scriptChips = document.getElementById("scriptChips");
+  const styleChips  = document.getElementById("styleChips");
+  scriptChips.innerHTML = SCRIPT_ORDER.map(id=>
+    `<button class="chip" data-v="${id}">${SCRIPTS[id].label}<span class="cnt">${SCRIPTS[id].cards.filter(c=>c[0]).length}</span></button>`).join("");
+  styleChips.innerHTML = STYLES.map(s=>`<button class="chip" data-v="${s[0]}">${s[1]}</button>`).join("");
+
+  const pad2 = n => String(n).padStart(2,"0");
+  function preview(){
+    const S = SCRIPTS[curScript];
+    const cards = S.cards.filter(c=>c[0]);
+    const idx = Math.min(FEATURED[curScript]||0, cards.length-1);
+    const src = `cards/${curStyle}/${curScript}/${pad2(idx+1)}-${showBack?"b":"f"}.webp`;
+    document.getElementById("pvFrame").innerHTML =
+      `<img class="pvimg" src="${src}" alt="${esc(S.label)} preview">`;
+    document.getElementById("pvFrame").querySelector(".pvimg").onclick = ()=>{ showBack=!showBack; preview(); };
+    const styleName = STYLES.find(s=>s[0]===curStyle)[1];
+    document.getElementById("pvCap").textContent = `${S.label} · ${styleName} · ${showBack?"back":"front"}`;
+    document.getElementById("studyBtn").href = `swipe.html?script=${curScript}&style=${curStyle}`;
+    scriptChips.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===curScript));
+    styleChips.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===curStyle));
+  }
+  scriptChips.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{curScript=b.dataset.v;showBack=false;preview();});
+  styleChips.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{curStyle=b.dataset.v;preview();});
+  preview();
+</script>
+</body>
+</html>
