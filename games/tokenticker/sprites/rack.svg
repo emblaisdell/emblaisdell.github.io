@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <g stroke="#241640" stroke-width="5" stroke-linejoin="round">
+    <rect x="38" y="112" width="12" height="8" rx="4" fill="#8677b3" stroke-width="3.5"/>
+    <rect x="78" y="112" width="12" height="8" rx="4" fill="#8677b3" stroke-width="3.5"/>
+    <rect x="34" y="12" width="60" height="102" rx="10" fill="#a99fd1"/>
+    <rect x="42" y="20" width="44" height="24" rx="6" fill="#171034"/>
+  </g>
+  <ellipse cx="55" cy="32" rx="5" ry="6.5" fill="#f2eeff"/>
+  <ellipse cx="73" cy="32" rx="5" ry="6.5" fill="#f2eeff"/>
+  <circle cx="56.2" cy="33.5" r="2.5" fill="#241640"/>
+  <circle cx="74.2" cy="33.5" r="2.5" fill="#241640"/>
+  <circle cx="55.2" cy="31.5" r="0.9" fill="#f2eeff"/>
+  <circle cx="73.2" cy="31.5" r="0.9" fill="#f2eeff"/>
+  <g fill="#171034" stroke="#241640" stroke-width="3">
+    <rect x="42" y="52" width="44" height="10" rx="3"/>
+    <rect x="42" y="66" width="44" height="10" rx="3"/>
+    <rect x="42" y="80" width="44" height="10" rx="3"/>
+    <rect x="42" y="94" width="44" height="10" rx="3"/>
+  </g>
+  <circle cx="48" cy="57" r="2" fill="#7dff9b"/><circle cx="55" cy="57" r="2" fill="#7ae0ff"/>
+  <circle cx="48" cy="71" r="2" fill="#7ae0ff"/><circle cx="55" cy="71" r="2" fill="#7dff9b"/>
+  <circle cx="48" cy="85" r="2" fill="#7dff9b"/><circle cx="55" cy="85" r="2" fill="#7dff9b"/>
+  <circle cx="48" cy="99" r="2" fill="#7ae0ff"/><circle cx="55" cy="99" r="2" fill="#7ae0ff"/>
+</svg>
