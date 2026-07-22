@@ -398,7 +398,7 @@ function renderGraph() {
     g.appendChild(svgText(ns, NODE_W / 2, 44, n.id, "label"));
     if (n.model) {
       // Model names are real slugs now — a text chip, no sprite to 404 on.
-      g.appendChild(svgText(ns, NODE_W / 2, 57, MODELS[n.model]?.short ?? n.model, "chip"));
+      g.appendChild(svgText(ns, NODE_W / 2, 57, MODELS[n.model]?.title ?? n.model, "chip"));
     }
     svg.appendChild(g);
   }
