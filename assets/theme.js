@@ -6,7 +6,7 @@
 // Behavior:
 //   • Fresh visit (new tab / no session)  → academic theme (the default).
 //   • Navigating within the site          → same theme (kept in sessionStorage).
-//   • Refresh / reload                     → reshuffle to a new random theme.
+//   • Refresh / reload                     → a new random theme, always different from the current one.
 //   • "cycle theme" button                → step to the next theme, in order.
 (function () {
   var ORDER = ['theme-academic', 'theme-bootstrap', 'theme-vibe', 'theme-calligraphic'];
@@ -18,7 +18,12 @@
   };
   var KEY = 'site-theme';
 
-  function rand() { return ORDER[Math.floor(Math.random() * ORDER.length)]; }
+  // Random theme that is guaranteed to differ from `except` (the current one),
+  // so a refresh always visibly changes the look — never the same by chance.
+  function rand(except) {
+    var pool = ORDER.filter(function (t) { return t !== except; });
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
   function read() { try { return sessionStorage.getItem(KEY); } catch (e) { return null; } }
   function write(t) { try { sessionStorage.setItem(KEY, t); } catch (e) {} }
 
@@ -34,7 +39,7 @@
   // ---- Decide and apply the theme now (runs in <head>, before paint) ----
   var theme;
   if (isReload()) {
-    theme = rand();           // refresh → new random theme
+    theme = rand(read());     // refresh → new random theme, never the current one
     write(theme);
   } else {
     theme = read();           // navigation within the session → keep
