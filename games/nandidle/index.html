@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nand Idle</title>
+<link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand">
+      <span class="mark">NAND</span><span class="mark2">IDLE</span>
+      <span class="sub">fabrication drawing / rev A</span>
+    </div>
+    <div class="readout" id="readout"></div>
+    <nav class="screens">
+      <button class="tab" data-screen="fab">FAB FLOOR</button>
+      <button class="tab" data-screen="record">RECORDING BENCH</button>
+    </nav>
+  </header>
+
+  <div id="body">
+    <aside id="left">
+      <section class="panel grow">
+        <h2>INVENTORY <span id="paletteHint">click, then click the sheet</span></h2>
+        <div id="palette" class="scroll"></div>
+      </section>
+      <section class="panel">
+        <h2>CONTROLS</h2>
+        <ul class="legend">
+          <li><b>drag pin -> pin</b> connect</li>
+          <li><b>drag body</b> move</li>
+          <li><b>right click</b> remove</li>
+          <li><b>wheel / drag sheet</b> zoom / pan</li>
+          <li><b>shift + click</b> place repeatedly</li>
+        </ul>
+        <div class="row">
+          <button id="btnReset" class="ghost small">NEW GAME</button>
+          <span class="muted" id="saveNote">saved</span>
+        </div>
+      </section>
+    </aside>
+
+    <div id="stage">
+      <canvas id="fabCanvas"></canvas>
+      <canvas id="recCanvas" hidden></canvas>
+    </div>
+
+    <aside id="right">
+      <div id="fabSide">
+        <section class="panel">
+          <h2>ORDER BOOK</h2>
+          <div id="clients"></div>
+          <button id="btnGrant" class="ghost small" hidden>REQUEST ADVANCE ($60)</button>
+        </section>
+        <section class="panel grow">
+          <h2>SHOP LOG</h2>
+          <div id="log" class="scroll"></div>
+        </section>
+      </div>
+
+      <div id="recSide" hidden>
+        <section class="panel">
+          <h2>TERMINALS <span>name the ports</span></h2>
+          <div class="row">
+            <select id="importPick" title="copy a commission's ports and name"></select>
+            <button id="btnImport" class="ghost small">IMPORT</button>
+          </div>
+          <div class="row">
+            <span class="muted">INPUTS</span>
+            <button id="arityDown" class="ghost small">&minus;</button>
+            <span id="arityVal" class="big">2</span>
+            <button id="arityUp" class="ghost small">+</button>
+          </div>
+          <div id="termNames" class="terms"></div>
+          <div class="row">
+            <input id="recName" placeholder="CIRCUIT NAME" maxlength="22" />
+          </div>
+          <div class="row">
+            <button id="btnRecord" class="primary">RECORD</button>
+            <button id="btnDone" class="primary" disabled>DONE</button>
+            <button id="btnDiscard" class="ghost">DISCARD</button>
+          </div>
+          <p class="muted small" id="recHint">Set the input count, then press RECORD. The stopwatch runs until you press DONE, and that time becomes the subfab's cycle time.</p>
+        </section>
+        <section class="panel grow">
+          <h2>ANALYSIS</h2>
+          <div id="analysis"></div>
+        </section>
+      </div>
+    </aside>
+  </div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
