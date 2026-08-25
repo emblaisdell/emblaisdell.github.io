@@ -13,8 +13,22 @@ export class Renderer {
     this.dpr = 1;
     this.vw = canvas.width; this.vh = canvas.height;  // logical (CSS px) size
     this.isTouch = false;   // set by main.js; picks the restart prompt wording
+    this.resumesFromCheckpoint = false;  // set by main.js; ditto (restart vs resume)
+    this.ckptFlash = 0;     // seconds left on the "checkpoint banked" HUD note
+    this.resumePending = false;  // set by main.js while a death-screen tap waits
+                                 // out the double-tap window
     this.alpha = 1;         // interpolation fraction between prev/current sim step
+    // World zoom. Pinned at 1 for real runs -- seeing further than the level
+    // author intended would give the game away -- and only unlocked when the
+    // editor hands a level over for playtesting.
+    this.zoom = 1;
   }
+
+  // The viewport measured in the world layer's own units, i.e. before the zoom
+  // transform. Camera framing and cull ranges work in these, so zooming out
+  // genuinely widens what is on screen instead of just scaling it.
+  get viewW() { return this.vw / this.zoom; }
+  get viewH() { return this.vh / this.zoom; }
 
   // Size the backing store to the device's pixel ratio so it stays crisp on
   // high-DPI screens (retina / most phones), while pinning the CSS size in px so
@@ -48,8 +62,8 @@ export class Renderer {
     const fx = ppx + (f.x - ppx) * a;
     const fy = ppy + (f.y - ppy) * a;
     return {
-      x: fx + TIM_W / 2 - this.vw / 2 / CELL,
-      y: fy + TIM_H / 2 - this.vh / 2 / CELL,
+      x: fx + TIM_W / 2 - this.viewW / 2 / CELL,
+      y: fy + TIM_H / 2 - this.viewH / 2 / CELL,
     };
   }
 
@@ -74,6 +88,7 @@ export class Renderer {
     // End-of-life clock: drives the topple animation and the end-screen fade-in
     // (the world sim is frozen once the round ends, so we time these on render).
     this.endT = this.world.status !== 'play' ? (this.endT || 0) + dt : 0;
+    if (this.ckptFlash > 0) this.ckptFlash = Math.max(0, this.ckptFlash - dt);
     this.updateCamera();
     const ctx = this.ctx, w = this.world;
     // Reset to a dpr-scaled transform so everything below is drawn in CSS px.
@@ -85,13 +100,19 @@ export class Renderer {
     g.addColorStop(1, COLORS.bg0);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, this.vw, this.vh);
+
+    // Everything from here to the matching restore() is the world, drawn in
+    // cell units and scaled by the zoom. The HUD after it stays in screen px so
+    // text and the energy meter keep their size however far you zoom out.
+    ctx.save();
+    ctx.scale(this.zoom, this.zoom);
     this.drawGridLines();
 
     // Visible cell range. Stored so the vortex/piston passes can cull too --
     // the world is unbounded and can hold hundreds of entities, but only the
     // handful on screen are worth drawing.
-    const x0 = Math.floor(this.cam.x) - 1, x1 = Math.ceil(this.cam.x + this.vw / CELL) + 1;
-    const y0 = Math.floor(this.cam.y) - 1, y1 = Math.ceil(this.cam.y + this.vh / CELL) + 1;
+    const x0 = Math.floor(this.cam.x) - 1, x1 = Math.ceil(this.cam.x + this.viewW / CELL) + 1;
+    const y0 = Math.floor(this.cam.y) - 1, y1 = Math.ceil(this.cam.y + this.viewH / CELL) + 1;
     this.view = { x0, y0, x1, y1 };
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
@@ -104,6 +125,8 @@ export class Renderer {
     if (w.blueVortex) this.drawBlue(w.blueVortex);
     this.drawTims();
     this.drawParticles();
+    ctx.restore();
+
     this.drawHUD();
     this.drawInfoMessage();
   }
@@ -111,12 +134,12 @@ export class Renderer {
   drawGridLines() {
     const ctx = this.ctx;
     ctx.strokeStyle = COLORS.grid;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1 / this.zoom;   // stays a hairline on screen at any zoom
     const startX = -((this.cam.x % 1) * CELL);
     const startY = -((this.cam.y % 1) * CELL);
     ctx.beginPath();
-    for (let x = startX; x < this.vw; x += CELL) { ctx.moveTo(x, 0); ctx.lineTo(x, this.vh); }
-    for (let y = startY; y < this.vh; y += CELL) { ctx.moveTo(0, y); ctx.lineTo(this.vw, y); }
+    for (let x = startX; x < this.viewW; x += CELL) { ctx.moveTo(x, 0); ctx.lineTo(x, this.viewH); }
+    for (let y = startY; y < this.viewH; y += CELL) { ctx.moveTo(0, y); ctx.lineTo(this.viewW, y); }
     ctx.stroke();
   }
 
@@ -864,6 +887,19 @@ export class Renderer {
       }
     }
 
+    // "Checkpoint" note, right of the energy meter. Banking is deferred to the
+    // first safe landing after an orb, so the moment it happens is worth
+    // showing -- otherwise the player has no way to know the run is saved.
+    if (this.ckptFlash > 0) {
+      const k = Math.min(1, this.ckptFlash / 0.45);      // fade out at the end
+      ctx.save();
+      ctx.globalAlpha = k;
+      ctx.font = 'bold 11px system-ui, sans-serif';
+      ctx.fillStyle = COLORS.vGreen;
+      ctx.fillText('CHECKPOINT', x0 + n * (cellW + gap) + 6, y0 + cellW - 3);
+      ctx.restore();
+    }
+
     // Time-travel countdown bar. Always spans the full TT_WARMUP (so it reads as
     // time travel, not cloning) and drains over exactly that long. A notch marks
     // where the next-timeline Tim appears. Shown ONLY when the focused Tim is the
@@ -905,12 +941,25 @@ export class Renderer {
     if (w.status === 'win') this.banner('YOU WIN!', '#46e08b', `Congratulations!  You obtained 10 time energy and have mastered time travel.  ${again} to replay.`);
     if (w.status === 'dead') {
       const msg = w.deathMsg || 'You died.';
-      this.banner('YOU DIED', '#ff4d5e', `${msg}  ${again} to restart.`);
+      const over = this.isTouch ? 'Double-tap' : 'Double-click';
+      if (!this.resumesFromCheckpoint) {
+        // Nothing banked, so there's only one thing a tap can mean.
+        this.banner('YOU DIED', '#ff4d5e', `${msg}  ${again} to restart.`);
+      } else if (this.resumePending) {
+        // A tap has landed and is waiting out the double-tap window. Say so --
+        // and say what a second tap would do, before someone taps it blind.
+        const more = this.isTouch ? 'Tap again' : 'Click again';
+        this.banner('YOU DIED', '#ff4d5e', 'Resuming from your last time-orb…',
+                    `${more} to start the whole game over instead.`);
+      } else {
+        this.banner('YOU DIED', '#ff4d5e', `${msg}  ${again} to resume from your last time-orb.`,
+                    `${over} to start the game over.`);
+      }
     }
     ctx.restore();
   }
 
-  banner(title, color, sub) {
+  banner(title, color, sub, sub2) {
     const ctx = this.ctx;
     // Fade the overlay in over ~0.5s so any death explosion is visible first.
     const k = Math.min(1, (this.endT || 0) / 0.5);
@@ -926,6 +975,12 @@ export class Renderer {
     ctx.fillStyle = '#cdd6ea';
     ctx.font = '18px system-ui, sans-serif';
     ctx.fillText(sub, this.vw / 2, this.vh / 2 + 32);
+    // Optional second line -- smaller and dimmer, for the secondary choice.
+    if (sub2) {
+      ctx.fillStyle = '#8a93a8';
+      ctx.font = '14px system-ui, sans-serif';
+      ctx.fillText(sub2, this.vw / 2, this.vh / 2 + 58);
+    }
     ctx.textAlign = 'left';
     ctx.restore();
   }

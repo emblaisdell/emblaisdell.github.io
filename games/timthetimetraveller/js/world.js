@@ -3,7 +3,7 @@
 import {
   T, DIRS, CELL, GRAVITY, MOVE_SPEED, JUMP_VELOCITY, MAX_FALL,
   TIM_W, TIM_H, COYOTE, VORTEX_R, WIN_ENERGY, TT_WARMUP, PISTON_WARMUP,
-  SOLID, PUSHABLE, key, VOID_DROP,
+  SOLID, PUSHABLE, key, VOID_DROP, DELAY_TIME,
 } from './constants.js';
 import { makeGrid, cellAt } from './level.js';
 import { Circuit } from './circuit.js';
@@ -60,6 +60,164 @@ export class World {
   }
 
   get focused() { return this.tims[this.focus]; }
+
+  // --- checkpoints -------------------------------------------------------
+  // A checkpoint is a complete snapshot of the run at the instant a green orb
+  // was banked, precise enough that resuming is indistinguishable from never
+  // having died: the grid as pistons have rearranged it, the entire electrical
+  // state (coin rolls, which wires are live, which pistons are out, the pulses
+  // still travelling through delay lines), every Tim with his momentum, and any
+  // time travel still in flight. It is plain JSON so the host can park it in
+  // localStorage and bring the run back days later.
+  snapshot() {
+    const idx = new Map(this.tims.map((t, i) => [t, i]));
+    const cir = this.circuit;
+    return {
+      time: this.time,
+      energy: this.energy,
+      focus: this.focus,
+      cells: [...this.grid.values()].map((c) => ({
+        x: c.x, y: c.y, t: c.t, dir: c.dir, variant: c.variant, text: c.text,
+      })),
+      circuit: {
+        // The delay lines' timebase: their history is stamped against it.
+        time: cir.time,
+        // The dice are NOT re-thrown on resume -- a checkpoint you solved has
+        // to stay solvable, and half the wiring may hang off this roll.
+        coins: cir.coins.map((c) => ({ x: c.x, y: c.y, active: !!c.active })),
+        // Live wires are genuine state, not something to recompute: NOT gates
+        // read the wire states settled at the END of the previous frame, so
+        // resuming with everything dark would invert every gate for a frame.
+        wires: cir.wires.filter((w) => w.powered).map((w) => key(w.x, w.y)),
+        // Likewise pistons -- an extended piston that came back retracted would
+        // drop whoever was standing on its head and then re-fire into him.
+        pistons: cir.pistons.filter((p) => p.on).map((p) => key(p.x, p.y)),
+        // A delay line's whole in-flight waveform, so pulses mid-transit (and
+        // any oscillator's phase) survive the rewind.
+        delays: cir.delays.map((d) => ({
+          x: d.cell.x, y: d.cell.y,
+          hist: d.cell.delayHist.map((h) => ({ t: h.t, v: !!h.v })),
+        })),
+      },
+      // Buttons held down at the snapshot, so resuming doesn't re-click them.
+      pressed: [...this.prevPressed],
+      // A vortex mid-absorption is already banked, so it comes back collected.
+      vortices: this.vortices.map((v) => ({
+        x: v.x, y: v.y, color: v.color, alive: !!v.alive && !v.collecting,
+      })),
+      // Everything that decides where a Tim goes next: velocity, whether he's
+      // footed, the air jump he has banked, and his coyote grace.
+      tims: this.tims.map((t) => ({
+        x: t.x, y: t.y, vx: t.vx, vy: t.vy, onGround: !!t.onGround,
+        airJumps: t.airJumps, facing: t.facing, coyote: t.coyote, walk: t.walk,
+      })),
+      blueVortex: this.blueVortex ? { x: this.blueVortex.x, y: this.blueVortex.y } : null,
+      timeTravels: this.timeTravels.map((tt) => ({
+        t: tt.t, energy: tt.energy, pos: { x: tt.pos.x, y: tt.pos.y },
+        spawnAt: tt.spawnAt, vanishAt: tt.vanishAt, spawned: !!tt.spawned,
+        oldTim: idx.has(tt.oldTim) ? idx.get(tt.oldTim) : -1,
+      })),
+    };
+  }
+
+  // Bring a snapshot back. Throws if the data is malformed -- the host falls
+  // back to a fresh run.
+  restore(s) {
+    if (!s || !Array.isArray(s.cells) || !Array.isArray(s.tims) || !s.tims.length) {
+      throw new Error('bad checkpoint');
+    }
+    this.reset();
+
+    // The grid as it stood, not as the level authored it (pistons rearrange it).
+    this.grid = new Map();
+    for (const c of s.cells) {
+      this.grid.set(key(c.x, c.y), { x: c.x, y: c.y, t: c.t, dir: c.dir ?? 0,
+                                     variant: c.variant ?? 0, text: c.text ?? '' });
+    }
+    this.buttonCells = [];
+    this.infoCells = [];
+    for (const c of this.grid.values()) {
+      if (c.t === T.BUTTON) this.buttonCells.push(c);
+      else if (c.t === T.INFO && c.text) this.infoCells.push(c);
+    }
+
+    // The clock comes back too: the electronics resume already settled, so the
+    // start-of-run window where pistons hold their blocks must NOT re-arm (it
+    // would let a piston shove a wire that it already shoved before the save).
+    this.time = s.time ?? 0;
+
+    // Rebuild the circuit over the restored grid, then put its state back. Only
+    // wires and walls are pushable, so components keep their coordinates and
+    // every lookup below can key off (x,y).
+    this.circuit = new Circuit(this.grid);
+    this.restoreCircuit(s.circuit);
+    this.prevPressed = new Set(s.pressed ?? []);
+
+    this.vortices = (s.vortices ?? []).map((v) => ({
+      x: v.x, y: v.y, color: v.color, alive: !!v.alive,
+    }));
+    this.energy = Math.max(0, Math.min(WIN_ENERGY, s.energy | 0));
+
+    // Tims are recreated in snapshot order, so "newest" (highest id) still
+    // means the same self it did before.
+    this.tims = s.tims.map((d) => {
+      const t = makeTim(d.x, d.y);
+      t.vx = d.vx ?? 0; t.vy = d.vy ?? 0;
+      t.onGround = !!d.onGround; t.airJumps = d.airJumps ?? 1;
+      t.facing = d.facing ?? 1; t.coyote = d.coyote ?? 0; t.walk = d.walk ?? 0;
+      return t;
+    });
+    this.focus = Math.max(0, Math.min(this.tims.length - 1, s.focus | 0));
+
+    this.blueVortex = s.blueVortex ? { x: s.blueVortex.x, y: s.blueVortex.y } : null;
+    this.timeTravels = (s.timeTravels ?? []).map((d) => ({
+      t: d.t, energy: d.energy, pos: { x: d.pos.x, y: d.pos.y },
+      spawnAt: d.spawnAt, vanishAt: d.vanishAt, spawned: !!d.spawned,
+      oldTim: this.tims[d.oldTim] ?? null,
+    })).filter((tt) => tt.oldTim);
+    // Re-anchor each doomed self's fade-out to the restored clock.
+    for (const tt of this.timeTravels) {
+      tt.oldTim.vanishAt = this.time + Math.max(0, tt.vanishAt - tt.t);
+    }
+    // No trip still owes an arrival -> nothing left for a portal to disgorge.
+    if (!this.timeTravels.some((tt) => !tt.spawned)) this.blueVortex = null;
+  }
+
+  // Put a saved electrical state back onto a freshly built circuit. Components
+  // whose outputs are pure functions of what IS restored here -- NOT gates
+  // (recomputed from wire power) and delay-line outputs (recomputed from the
+  // history and the clock) -- need nothing: the next update derives them.
+  restoreCircuit(c) {
+    if (!c) return;
+    const cir = this.circuit;
+    cir.time = c.time ?? 0;
+
+    const rolls = new Map((c.coins ?? []).map((k) => [key(k.x, k.y), !!k.active]));
+    for (const coin of cir.coins) {
+      const r = rolls.get(key(coin.x, coin.y));
+      if (typeof r === 'boolean') coin.active = r;
+    }
+
+    const live = new Set(c.wires ?? []);
+    for (const w of cir.wires) w.powered = live.has(key(w.x, w.y));
+
+    const out = new Set(c.pistons ?? []);
+    for (const p of cir.pistons) p.on = out.has(key(p.x, p.y));
+
+    const hists = new Map((c.delays ?? []).map((d) => [key(d.x, d.y), d.hist]));
+    for (const d of cir.delays) {
+      const h = hists.get(key(d.cell.x, d.cell.y));
+      if (!Array.isArray(h) || !h.length) continue;
+      d.cell.delayHist = h.map((e) => ({ t: e.t, v: !!e.v }));
+      // The output is whatever the input was DELAY_TIME ago; recover it now so
+      // the very first frame after a resume drives its wire correctly.
+      const past = cir.time - DELAY_TIME;
+      let val = d.cell.delayHist[0].v;
+      for (const e of d.cell.delayHist) { if (e.t <= past) val = e.v; else break; }
+      d.output = val;
+      d.cell.delayOn = val;
+    }
+  }
 
   // Record a one-shot event (jump, collect, death, ...). The host drains
   // `events` each frame to fire sound effects; the sim itself stays pure so it

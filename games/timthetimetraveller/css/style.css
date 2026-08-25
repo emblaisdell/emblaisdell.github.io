@@ -43,6 +43,13 @@ button, a { touch-action: manipulation; }
   font-size: 12.5px;
   line-height: 1.5;
   backdrop-filter: blur(4px);
+  /* A landscape phone is barely taller than this panel, so cap it at the space
+     actually below the "?" button (12px inset + 34px button + 8px gap + a
+     12px tail) and let the rest scroll rather than run off the screen. */
+  max-height: calc(100vh - 66px - env(safe-area-inset-top));
+  max-height: calc(100dvh - 66px - env(safe-area-inset-top));
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 #help-panel[hidden] { display: none; }
 #help-panel strong { display: block; font-size: 15px; color: #fff; margin-bottom: 6px; }
@@ -52,8 +59,6 @@ button, a { touch-action: manipulation; }
 #help-panel .krow span { color: #8a93a8; }
 #help-panel .krow b { color: #e9edf5; font-weight: 600; text-align: right; }
 #help-panel .k-touch { display: none; }
-#help-panel a { display: inline-block; margin-top: 10px; color: #4db5ff; text-decoration: none; }
-#help-panel a:hover { text-decoration: underline; }
 
 /* Handedness toggle -- only meaningful with on-screen controls. */
 #help-panel .handed-toggle {
@@ -72,7 +77,14 @@ button, a { touch-action: manipulation; }
 }
 #help-panel .opt-row span { color: #8a93a8; }
 
-#hand-btn, #music-btn {
+/* Small print under an option, explaining what it does. */
+#help-panel .note {
+  color: #737d92;
+  font-size: 11.5px; line-height: 1.4;
+  margin-top: 5px;
+}
+
+#hand-btn, #music-btn, #ckpt-btn, #newgame-btn {
   background: rgba(77, 181, 255, 0.15);
   border: 1px solid rgba(77, 181, 255, 0.5);
   color: #cfe6ff;
@@ -80,11 +92,25 @@ button, a { touch-action: manipulation; }
   font-size: 12px; cursor: pointer;
   min-width: 44px;
 }
-#hand-btn:hover, #music-btn:hover { background: rgba(77, 181, 255, 0.28); }
-#music-btn.off {
+#hand-btn:hover, #music-btn:hover, #ckpt-btn:hover { background: rgba(77, 181, 255, 0.28); }
+#music-btn.off, #ckpt-btn.off {
   background: rgba(120, 140, 180, 0.12);
   border-color: rgba(120, 140, 180, 0.4);
   color: #8a93a8;
+}
+
+/* Start-over button: destructive, so it reads warm and turns red once armed. */
+#newgame-btn {
+  background: rgba(255, 125, 110, 0.12);
+  border-color: rgba(255, 125, 110, 0.45);
+  color: #ffc7bf;
+  white-space: nowrap;
+}
+#newgame-btn:hover { background: rgba(255, 125, 110, 0.24); }
+#newgame-btn.armed {
+  background: rgba(255, 77, 94, 0.32);
+  border-color: #ff4d5e;
+  color: #fff;
 }
 
 /* On touch devices: show the touch hints, hide the desktop key column,
@@ -115,6 +141,57 @@ body.is-touch #help-panel .handed-toggle { display: flex; }
 #mute-btn.muted .waves { display: none; }
 #mute-btn.muted .slash { display: inline; }
 
+/* ---- playtest bar (editor trial runs only) ---------------------------- */
+/* Tucked under the mute button on the right. Top-centre collided with the
+   canvas HUD title on a narrow landscape phone, and a second row on the left
+   would have run into the time-travel countdown bar. Present only when the game
+   was opened as a playtest, so a real run looks exactly as it always did. */
+#playtest-bar {
+  position: fixed;
+  top: calc(54px + env(safe-area-inset-top));    /* clears the 34px mute button */
+  right: calc(12px + env(safe-area-inset-right));
+  z-index: 30;
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px;
+  border-radius: 9px;
+  border: 1px solid rgba(120, 140, 180, 0.3);
+  background: rgba(18, 22, 34, 0.82);
+  backdrop-filter: blur(4px);
+  font-size: 12px; color: #cdd6ea;
+}
+#playtest-bar[hidden] { display: none; }
+#playtest-bar .pt-tag {
+  font-weight: 700; font-size: 10px; letter-spacing: 0.08em;
+  color: #ffd166;
+  padding-right: 4px;
+  border-right: 1px solid rgba(120, 140, 180, 0.25);
+}
+#playtest-bar button {
+  min-width: 28px; height: 28px;
+  padding: 0 7px;
+  border-radius: 7px;
+  border: 1px solid rgba(77, 181, 255, 0.5);
+  background: rgba(77, 181, 255, 0.15);
+  color: #cfe6ff;
+  font-size: 14px; line-height: 1; cursor: pointer;
+}
+#playtest-bar button:hover { background: rgba(77, 181, 255, 0.28); }
+#playtest-bar button:disabled { opacity: 0.35; cursor: default; }
+#playtest-bar button:disabled:hover { background: rgba(77, 181, 255, 0.15); }
+#playtest-bar #zoom-reset { font-size: 11px; }
+#zoom-level {
+  min-width: 42px; text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: #e9edf5;
+}
+/* The mute button is taller on touch, so the bar sits a little lower there. */
+body.is-touch #playtest-bar { top: calc(62px + env(safe-area-inset-top)); }
+/* Fingers need more than 28px, same trick as everywhere else. */
+body.is-touch #playtest-bar button { position: relative; }
+body.is-touch #playtest-bar button::after {
+  content: ""; position: absolute; inset: -9px -4px;
+}
+
 /* ---- on-screen touch controls ---------------------------------------- */
 #touch-controls { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
 #touch-controls[hidden] { display: none; }
@@ -123,12 +200,15 @@ body.is-touch #help-panel .handed-toggle { display: flex; }
   position: fixed;
   bottom: calc(22px + env(safe-area-inset-bottom));
   pointer-events: none;
+  /* Single source of truth: the visible gap between neighbouring buttons. The
+     hit-area split below is derived from it, so the two can't drift apart. */
+  --pad-gap: 16px;
 }
 /* Movement + portal: a single row of [◀][◉][▶] under one thumb. */
 .pad-move {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--pad-gap);
 }
 /* Action cluster: a bottom-anchored column. The bottom row holds the portal +
    jump side by side; the switch-Tim button sits above it when relevant. */
@@ -136,12 +216,12 @@ body.is-touch #help-panel .handed-toggle { display: flex; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--pad-gap);
 }
 .act-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--pad-gap);
 }
 
 /* Handedness: which side each cluster sits on. Movement and the jump/action
@@ -153,12 +233,13 @@ body.is-touch #help-panel .handed-toggle { display: flex; }
 
 .tbtn {
   pointer-events: auto;
-  width: 62px; height: 62px;
-  border-radius: 14px;
+  position: relative;
+  width: 72px; height: 72px;
+  border-radius: 16px;
   border: 1px solid rgba(150, 170, 210, 0.35);
   background: rgba(30, 38, 56, 0.42);
   color: #dbe4f5;
-  font-size: 24px; line-height: 1;
+  font-size: 28px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
   backdrop-filter: blur(2px);
   touch-action: none;
@@ -166,28 +247,66 @@ body.is-touch #help-panel .handed-toggle { display: flex; }
 }
 .tbtn.pressed { background: rgba(77, 181, 255, 0.4); transform: scale(0.94); }
 
+/* Effective (not visual) size. Thumbs miss a 62px chip constantly, so every
+   button carries a transparent pseudo-element that reaches far past its
+   artwork -- a hit on a pseudo-element counts as a hit on its button, so the
+   controls play roughly three times bigger than they look. Sides that face a
+   neighbour grow by only half the 8px gap, so two buttons can never steal each
+   other's taps; every other side reaches out generously (past the screen edge
+   at the bottom, which is exactly where thumbs land). */
+.tbtn {
+  --hit-t: 44px; --hit-r: 44px; --hit-b: 48px; --hit-l: 44px;
+  --hit-half: calc(var(--pad-gap) / 2);   /* reach toward a side-by-side neighbour */
+}
+.tbtn::before {
+  content: "";
+  position: absolute;
+  top: calc(-1 * var(--hit-t));
+  right: calc(-1 * var(--hit-r));
+  bottom: calc(-1 * var(--hit-b));
+  left: calc(-1 * var(--hit-l));
+}
+/* Side-by-side peers meet exactly halfway across the visible gap, so the
+   boundary is where the eye puts it and neither can reach the other's face. */
+.tb-left   { --hit-r: var(--hit-half); }
+.tb-right  { --hit-l: var(--hit-half); }
+.tb-portal { --hit-r: var(--hit-half); }
+.tb-up     { --hit-l: var(--hit-half); }
+/* Stacked, though, splitting the gap is the wrong call: the switch-Tim button
+   is centred ABOVE the portal/jump row and its hit box is far wider than its
+   circle, so any share of the gap it takes is a band sitting directly over two
+   buttons you press constantly -- reach a few px high for jump and you'd switch
+   Tim instead. So it gets no downward reach at all (it still fires anywhere on
+   itself, plus its generous top and sides) and the row below claims the whole
+   gap, putting the boundary exactly on the switch button's visible edge. */
+.tb-toggle { --hit-b: 0px; }
+.act-row .tbtn { --hit-t: var(--pad-gap); }
+/* ...but most of the time there's only one Tim and no button up there at all,
+   so the row reclaims the space above it. */
+#touch-controls:not(:has(.tb-toggle.show)) .act-row .tbtn { --hit-t: 44px; }
+
 /* Center time-travel button: the blue portal. */
 .tb-portal {
   border-radius: 50%;
   border-color: rgba(77, 181, 255, 0.6);
   background:
     radial-gradient(circle at 50% 50%, #ffffff 0%, #8fd0ff 22%, #4db5ff 45%, rgba(77,181,255,0.12) 78%);
-  box-shadow: 0 0 14px rgba(77, 181, 255, 0.5), inset 0 0 8px rgba(255,255,255,0.4);
+  box-shadow: 0 0 10px rgba(77, 181, 255, 0.5), inset 0 0 8px rgba(255,255,255,0.4);
   position: relative;
 }
 .tb-portal::after {
   content: "";
-  position: absolute; inset: 8px;
+  position: absolute; inset: 10px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.55);
   border-top-color: transparent; border-left-color: transparent;
   animation: portal-spin 2.4s linear infinite;
 }
-.tb-portal.pressed { transform: scale(0.94); box-shadow: 0 0 20px rgba(77, 181, 255, 0.8); }
+.tb-portal.pressed { transform: scale(0.94); box-shadow: 0 0 14px rgba(77, 181, 255, 0.8); }
 @keyframes portal-spin { to { transform: rotate(360deg); } }
 
 /* Jump button: an up-arrow, same size as the movement arrows. */
-.tb-up { font-size: 26px; }
+.tb-up { font-size: 30px; }
 
 /* Switch-Tim button: same size/shape as the portal, reticle'd Tim icon.
    Hidden until JS adds .show (i.e. once a second Tim exists); the jump button
@@ -195,7 +314,7 @@ body.is-touch #help-panel .handed-toggle { display: flex; }
 .tb-toggle {
   display: none;
   border-radius: 50%;
-  padding: 8px;
+  padding: 9px;
   border-color: rgba(255, 209, 102, 0.5);
   background: rgba(30, 38, 56, 0.5);
 }
@@ -203,9 +322,11 @@ body.is-touch #help-panel .handed-toggle { display: flex; }
 .tb-toggle svg { display: block; }
 
 @media (max-height: 430px) {
-  .pad-move, .pad-act, .act-row { gap: 6px; }
-  .tbtn { width: 54px; height: 54px; font-size: 21px; }
-  .tb-up { font-size: 23px; }
+  .pad { --pad-gap: 14px; }
+  .tbtn { width: 64px; height: 64px; font-size: 25px; }
+  .tb-up { font-size: 27px; }
+  /* Squeeze the menu's option rows so less of it needs scrolling. */
+  #help-panel .opt-row, #help-panel .handed-toggle { margin-top: 8px; padding-top: 7px; }
 }
 
 /* ---- portrait rotate hint (touch only) -------------------------------- */
@@ -220,6 +341,28 @@ body.is-touch #help-panel .handed-toggle { display: flex; }
 #rotate-hint .rot-icon { font-size: 54px; animation: rot-tilt 2s ease-in-out infinite; }
 #rotate-hint p { font-size: 16px; max-width: 260px; }
 @keyframes rot-tilt { 0%,100% { transform: rotate(-12deg); } 50% { transform: rotate(78deg); } }
+
+/* ---- bigger corner buttons on touch ----------------------------------- */
+/* A little larger to look at than on desktop, and -- the same trick as the
+   d-pad -- swallowing a much wider square of taps than they show, so they're
+   reachable without aiming. */
+body.is-touch #help-btn,
+body.is-touch #mute-btn { width: 42px; height: 42px; }
+body.is-touch #help-btn { font-size: 22px; }
+body.is-touch #mute-btn svg { width: 23px; height: 23px; }
+/* The panel hangs off a taller button here, so its cap drops to match. */
+body.is-touch #help-panel {
+  max-height: calc(100vh - 74px - env(safe-area-inset-top));
+  max-height: calc(100dvh - 74px - env(safe-area-inset-top));
+}
+
+body.is-touch #help-btn { position: relative; }
+body.is-touch #help-btn::after,
+body.is-touch #mute-btn::after {
+  content: "";
+  position: absolute;
+  inset: -20px;
+}
 
 body.is-touch #rotate-hint { display: none; }
 @media (orientation: portrait) {

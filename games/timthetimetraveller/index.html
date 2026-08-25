@@ -31,6 +31,17 @@
         <button id="music-btn" type="button">On</button>
       </div>
 
+      <div class="opt-row">
+        <span>Checkpoints</span>
+        <button id="ckpt-btn" type="button">On</button>
+      </div>
+      <p class="note" id="ckpt-note">Each green orb saves your run; dying rewinds you there.</p>
+
+      <div class="opt-row">
+        <span>Start over</span>
+        <button id="newgame-btn" class="danger" type="button">New game</button>
+      </div>
+
       <div class="mobile-only handed-toggle">
         <span>Controls side</span>
         <button id="hand-btn" type="button">Right-handed</button>
@@ -50,6 +61,16 @@
             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
     </svg>
   </button>
+
+  <!-- Playtest-only bar: marks this as an editor trial run rather than a real
+       one, and carries the zoom controls. Revealed by main.js. -->
+  <div id="playtest-bar" hidden>
+    <span class="pt-tag">PLAYTEST</span>
+    <button id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out (-)">−</button>
+    <span id="zoom-level">100%</span>
+    <button id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in (+)">+</button>
+    <button id="zoom-reset" type="button" title="Reset zoom (0)">Reset</button>
+  </div>
 
   <!-- On-screen touch controls (shown only on touch / coarse-pointer devices).
        Two-thumb layout: movement + time-travel on one side, jump (and the
