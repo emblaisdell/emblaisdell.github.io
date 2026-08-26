@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- a blue atom: two opposing quarter-wedges (East + West) -->
+  <path d="M32 32 L53.21 10.79 A30 30 0 0 1 53.21 53.21 Z" fill="#4488ee"/>
+  <path d="M32 32 L10.79 53.21 A30 30 0 0 1 10.79 10.79 Z" fill="#4488ee"/>
+</svg>

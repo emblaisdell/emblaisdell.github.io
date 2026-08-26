@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Wang's Algorithm</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header id="hud">
+    <div class="hud-mark">
+      <span class="hud-atom" aria-hidden="true"></span>
+      <h1 class="hud-title">Wang's&nbsp;<b>Algorithm</b></h1>
+    </div>
+
+    <span class="hud-sep" aria-hidden="true"></span>
+
+    <nav id="modes" class="hud-modes" aria-label="Level style">
+      <button data-mode="standard" class="mode active">standard</button>
+      <button data-mode="zen" class="mode">zen</button>
+      <button data-mode="tautological" class="mode">tautological</button>
+    </nav>
+
+    <div class="hud-stats">
+      <div class="stat"><span class="stat-k">lvl</span><span id="level" class="stat-v">1</span></div>
+      <div class="stat"><span class="stat-k">moves</span><span id="moves" class="stat-v">0</span></div>
+      <button id="mute" class="hud-icon hud-mute" title="Mute sound" aria-label="Mute sound" aria-pressed="false"></button>
+      <button id="reset" class="hud-icon hud-reset" title="Reshuffle this level" aria-label="Reshuffle this level">↺</button>
+    </div>
+  </header>
+
+  <main>
+    <canvas id="board"></canvas>
+
+    <div id="win" class="overlay hidden">
+      <div class="card win">
+        <span class="card-tag">solved</span>
+        <h2 class="card-title">Board cleared</h2>
+        <p class="card-note">Every molecule paired off and annihilated.</p>
+        <div class="stat card-stat"><span class="stat-k">moves</span><span id="win-moves" class="stat-v">0</span></div>
+        <div class="card-actions">
+          <button id="next" class="btn-primary">Next level</button>
+          <button id="again" class="btn-ghost">Replay</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="lose" class="overlay hidden">
+      <div class="card lose">
+        <span class="card-tag">dead end</span>
+        <h2 class="card-title">Level lost</h2>
+        <p class="card-note">That molecule was needed — this row can no longer be cleared.</p>
+        <div class="card-actions">
+          <button id="retry" class="btn-primary">Try again</button>
+          <button id="newlevel" class="btn-ghost">New level</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="src/logic.js"></script>
+  <script src="src/float.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/render.js"></script>
+  <script src="src/engine.js"></script>
+  <script src="src/game.js"></script>
+  <script src="src/ui.js"></script>
+</body>
+</html>
