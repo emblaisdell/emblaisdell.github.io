@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="NAND gate">
+  <!-- Nand Idle mark: an ANSI NAND gate drawn as blueprint ink on white paper. -->
+  <defs>
+    <clipPath id="card"><rect width="64" height="64" rx="12"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="64" height="64" fill="#faf8f3"/>
+    <g stroke="#dce1e8" stroke-width="1">
+      <path d="M0 16h64M0 32h64M0 48h64M16 0v64M32 0v64M48 0v64"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#1b3350" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 23h9M3 41h9"/>
+    <path d="M12 14h12a18 18 0 0 1 0 36H12Z" fill="#ffffff"/>
+    <circle cx="49" cy="32" r="7" fill="#ffffff"/>
+    <path d="M56 32h4"/>
+  </g>
+</svg>

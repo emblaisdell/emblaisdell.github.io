@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Nand Idle</title>
+<link rel="icon" type="image/svg+xml" href="assets/nand.svg" />
 <link rel="stylesheet" href="src/style.css" />
 </head>
 <body>
@@ -15,7 +16,8 @@
     </div>
     <div class="readout" id="readout"></div>
     <nav class="screens">
-      <button class="tab" data-screen="fab">FAB FLOOR</button>
+      <button id="btnMute" class="tab" title="sound on/off" aria-pressed="false">SOUND</button>
+      <button class="tab" data-screen="line">PROCESSES</button>
       <button class="tab" data-screen="record">RECORDING BENCH</button>
     </nav>
   </header>
@@ -23,34 +25,65 @@
   <div id="body">
     <aside id="left">
       <section class="panel grow">
-        <h2>INVENTORY <span id="paletteHint">click, then click the sheet</span></h2>
+        <h2>CIRCUIT LIBRARY <span id="paletteHint">add a process</span></h2>
         <div id="palette" class="scroll"></div>
       </section>
       <section class="panel">
         <h2>CONTROLS</h2>
-        <ul class="legend">
+        <ul class="legend" id="legendLine">
+          <li><b>library click</b> add or duplicate a process</li>
+          <li><b>&#9650; &#9660;</b> priority: the top draws first</li>
+          <li><b>+ / &minus;</b> duplicate or dismantle a copy</li>
+          <li><b>order book</b> pay for a test run</li>
+          <li><b>ctrl + Z</b> undo</li>
+        </ul>
+        <ul class="legend" id="legendRec" hidden>
+          <li><b>library click</b> then click the sheet to place</li>
           <li><b>drag pin -> pin</b> connect</li>
-          <li><b>drag body</b> move</li>
           <li><b>right click</b> remove</li>
           <li><b>wheel / drag sheet</b> zoom / pan</li>
-          <li><b>shift + click</b> place repeatedly</li>
         </ul>
         <div class="row">
-          <button id="btnReset" class="ghost small">NEW GAME</button>
-          <span class="muted" id="saveNote">saved</span>
+          <button id="btnTutorial" class="ghost small">REPLAY TUTORIAL</button>
         </div>
+        <div class="row"><button id="btnUndo" class="ghost small" title="ctrl+Z">UNDO</button></div>
+        <div class="row"><span class="muted" id="saveNote">saved</span></div>
+        <div class="row"><button id="btnReset" class="ghost danger">START A NEW GAME</button></div>
       </section>
     </aside>
 
     <div id="stage">
-      <canvas id="fabCanvas"></canvas>
+      <div id="lineSheet" class="sheet"></div>
       <canvas id="recCanvas" hidden></canvas>
+      <div id="toast" hidden></div>
+      <aside id="tip" hidden>
+        <div class="tip-head"><span>NOTE</span><button id="tipClose" class="ghost small">GOT IT</button></div>
+        <h3 id="tipTitle"></h3>
+        <p id="tipBody"></p>
+      </aside>
+      <aside id="tutorial" hidden>
+        <div class="tut-head">
+          <span class="tut-mark" id="tutMark">TUTORIAL</span>
+          <span id="tutStep">STEP 1 OF 11</span>
+        </div>
+        <div class="tut-main">
+          <div class="tut-pips" id="tutPips"></div>
+          <div class="tut-body">
+            <h3 id="tutTitle"></h3>
+            <p id="tutBody"></p>
+            <div class="tut-foot">
+              <button id="tutSkip" class="ghost small">SKIP TUTORIAL</button>
+              <button id="tutNext" class="primary" hidden>FINISH</button>
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <aside id="right">
       <div id="fabSide">
         <section class="panel">
-          <h2>ORDER BOOK</h2>
+          <h2>ORDER BOOK <span>matched automatically</span></h2>
           <div id="clients"></div>
           <button id="btnGrant" class="ghost small" hidden>REQUEST ADVANCE ($60)</button>
         </section>
@@ -72,6 +105,10 @@
             <button id="arityDown" class="ghost small">&minus;</button>
             <span id="arityVal" class="big">2</span>
             <button id="arityUp" class="ghost small">+</button>
+            <span class="muted">OUTPUTS</span>
+            <button id="outsDown" class="ghost small">&minus;</button>
+            <span id="outsVal" class="big">1</span>
+            <button id="outsUp" class="ghost small">+</button>
           </div>
           <div id="termNames" class="terms"></div>
           <div class="row">
@@ -82,7 +119,7 @@
             <button id="btnDone" class="primary" disabled>DONE</button>
             <button id="btnDiscard" class="ghost">DISCARD</button>
           </div>
-          <p class="muted small" id="recHint">Set the input count, then press RECORD. The stopwatch runs until you press DONE, and that time becomes the subfab's cycle time.</p>
+          <p class="muted small" id="recHint">Set the input count, then press RECORD. The stopwatch runs until you press DONE, and that time becomes the process's cycle time.</p>
         </section>
         <section class="panel grow">
           <h2>ANALYSIS</h2>
