@@ -8,7 +8,7 @@ import {
   MAX_PORTS, MAX_WIDTH,
 } from './netlist.js';
 import { identifySequential } from './seqCatalogue.js';
-import { CLIENT_CATALOG, makeClient } from './clients.js';
+import { CLIENT_CATALOG, makeClient, priceCatalogue } from './clients.js';
 
 // Money is deliberately tight: an order is worth roughly three times the gates
 // it takes to fill, and a process costs about what a small order earns, so
@@ -27,13 +27,25 @@ export const BAL = {
   // production is lost when a frame runs late.
   recordMinMs: 300,
   recordMaxMs: 180000,
-  maintenancePay: 0.25,   // pay factor once a client's order is filled
-  maintenanceFloor: 1.1,  // ...but never below this multiple of a fair build's gates
+  // An order's price per unit is gates × gateCost × (payBase + payStep × its
+  // place in the ladder); see priceCatalogue. Then four stages, by units
+  // delivered: full price until the order is filled, a discount for the next
+  // discountSpan × need units, maintenance for maintenanceSpan × need more,
+  // and then the client has all it needs and leaves the schedule.
+  payBase: 3,
+  payStep: 0.15,
+  discountPay: 0.75,
+  discountSpan: 1,
+  maintenancePay: 0.5,
+  maintenanceSpan: 4,
+  reasonableBuild: 1.5,   // a build this much bigger than the reference is still "reasonable"
+  maintenanceFloor: 1.1,  // no unit ever pays below this multiple of what its gates cost
   grantAmount: 30,        // anti-softlock advance (see DECISIONS.md)
   offlineCapMs: 4 * 3600e3,   // the shop runs for at most four hours unattended
   offlineStepMs: 1000,
   logMax: 60,
 };
+priceCatalogue(BAL);
 
 export const SAVE_VERSION = 4;
 
@@ -234,6 +246,15 @@ export function refundCycle(s, type) {
   for (const g of type.ingredients) addStock(s, g.typeId, g.count);
 }
 
+/** How many of a circuit a row has taken towards its next cycle. */
+export function heldBy(row, typeId) { return row.held?.[typeId] || 0; }
+
+/** A row that will not run again gives back what it was saving up. */
+export function refundHeld(s, row) {
+  for (const [id, n] of Object.entries(row.held || {})) addStock(s, id, n);
+  row.held = {};
+}
+
 export function addProcess(s, typeId) {
   const t = typeOf(s, typeId);
   if (!t) return { ok: false, error: 'Unknown circuit.' };
@@ -242,7 +263,7 @@ export function addProcess(s, typeId) {
   s.cash -= BAL.processCost;
   const existing = procOf(s, typeId);
   if (existing) { existing.n++; return { ok: true, proc: existing, duplicated: true }; }
-  const proc = { id: nextId(s, 'p'), kind: 'process', typeId, n: 1, timers: [], starved: false };
+  const proc = { id: nextId(s, 'p'), kind: 'process', typeId, n: 1, timers: [], held: {}, starved: false };
   // New processes land above the shipments, so a circuit is made before it ships.
   const firstShip = s.rows.findIndex((r) => r.kind === 'ship');
   if (firstShip < 0) s.rows.push(proc); else s.rows.splice(firstShip, 0, proc);
@@ -261,7 +282,10 @@ export function removeProcess(s, id) {
     p.timers.pop();
     refundCycle(s, typeOf(s, p.typeId));
   }
-  if (p.n <= 0) s.rows = s.rows.filter((q) => q.id !== id);
+  if (p.n <= 0) {
+    refundHeld(s, p);
+    s.rows = s.rows.filter((q) => q.id !== id);
+  }
   return true;
 }
 
@@ -274,6 +298,7 @@ export function stopCopy(s, id) {
     p.timers.pop();
     refundCycle(s, typeOf(s, p.typeId));
   }
+  if (!activeCopies(p)) refundHeld(s, p);          // nothing left to save up for
   return true;
 }
 
@@ -292,7 +317,7 @@ export function splitProcess(s, id, keep) {
   const stoppedMoved = Math.min(p.stopped || 0, moved);
   const row = {
     id: nextId(s, 'p'), kind: 'process', typeId: p.typeId,
-    n: moved, stopped: stoppedMoved, timers: [], starved: false,
+    n: moved, stopped: stoppedMoved, timers: [], held: {}, starved: false,
   };
   // running cycles follow their copies
   for (let i = 0; i < moved && p.timers.length; i++) row.timers.push(p.timers.pop());
@@ -348,10 +373,9 @@ export function deleteType(s, typeId) {
   if (deps.length) {
     return { ok: false, error: `${deps.map((d) => d.name).join(', ')} ${deps.length > 1 ? 'are' : 'is'} built from ${t.name}.` };
   }
-  const row = procOf(s, typeId);
-  if (row) {
-    while (procOf(s, typeId)) removeProcess(s, row.id);
-  }
+  // A split stack is several rows of the same circuit: look the row up afresh
+  // each time, or the loop keeps dismantling one that is already gone.
+  for (let row = procOf(s, typeId); row; row = procOf(s, typeId)) removeProcess(s, row.id);
   const held = stockOf(s, typeId);
   delete s.stock[typeId];
   delete s.types[typeId];
@@ -554,16 +578,48 @@ export function sayRow(client, row) {
 
 /**
  * What a client pays for one unit. Two floors keep shipping from ever costing
- * more than it earns: a filled order still pays enough to cover a fair build of
- * what it asked for, and no shipment pays less than the gates in the unit
- * actually sent — so an inefficient circuit earns thin margins rather than
- * quietly draining the shop.
+ * more than it earns: a filled order still pays enough to cover a reasonable
+ * build of what it asked for — one somewhat bigger than the reference, so mild
+ * inefficiency keeps its margin — and no shipment pays less than the gates in
+ * the unit actually sent. Both floors carry the same margin over the gates'
+ * cost, so a unit always earns more than the NANDs it took to make, however it
+ * was built, rather than exactly what they cost.
  */
 export function payFor(client, type) {
-  const base = client.complete ? Math.round(client.pay * BAL.maintenancePay) : client.pay;
-  const fair = (client.gates || 1) * BAL.gateCost * BAL.maintenanceFloor;
-  const mine = (type?.gateEquiv || 0) * BAL.gateCost;
-  return Math.round(Math.max(base, client.complete ? fair : 0, mine) * 100) / 100;
+  const stage = stageOf(client);
+  if (stage === 'closed') return 0;
+  const base = stage === 'open' ? client.pay
+    : Math.round(client.pay * (stage === 'discount' ? BAL.discountPay : BAL.maintenancePay));
+  const fair = (client.gates || 1) * BAL.reasonableBuild * BAL.gateCost * BAL.maintenanceFloor;
+  const mine = (type?.gateEquiv || 0) * BAL.gateCost * BAL.maintenanceFloor;
+  return Math.round(Math.max(base, stage === 'open' ? 0 : fair, mine) * 100) / 100;
+}
+
+/** Which price stage a client is in, by units delivered: open, discount, maintenance, closed. */
+export function stageOf(client) {
+  if (client.closed) return 'closed';
+  const n = client.need;
+  const d = Math.max(client.delivered || 0, client.complete ? n : 0);
+  if (d < n) return 'open';
+  if (d < n * (1 + BAL.discountSpan)) return 'discount';
+  if (d < n * (1 + BAL.discountSpan + BAL.maintenanceSpan)) return 'maintenance';
+  return 'closed';
+}
+
+/** Units a client will still buy before its current stage ends. */
+export function stageLeft(client) {
+  const n = client.need;
+  const d = Math.max(client.delivered || 0, client.complete ? n : 0);
+  const ends = { open: n, discount: n * (1 + BAL.discountSpan), maintenance: n * (1 + BAL.discountSpan + BAL.maintenanceSpan), closed: d };
+  return Math.max(0, ends[stageOf(client)] - d);
+}
+
+/** A client that has all it needs: its shipping row leaves the schedule. */
+export function closeClient(s, client) {
+  if (client.closed) return;
+  client.closed = true;
+  s.rows = s.rows.filter((r) => !(r.kind === 'ship' && r.clientId === client.id));
+  log(s, 'warn', `${client.company}: contract ended`, 'They have all they need; their shipping row has left the schedule.');
 }
 
 export function testCost(client) {

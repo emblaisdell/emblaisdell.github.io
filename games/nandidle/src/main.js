@@ -4,6 +4,7 @@ import {
   newGame, save, load, wipe, allTypes, typeOf, stockOf, procOf,
   addProcess, matchingTypes, runTestbench, testCost, matchNote, shipRowFor,
   renameType, deleteType, dependentsOf, procOf as processFor, sayRow, payFor, unlockBase, BAL, log,
+  stageOf, stageLeft,
 } from './state.js';
 import { tick, isStalled, catchUp } from './sim.js';
 import { createLineScreen } from './lineScreen.js';
@@ -63,18 +64,50 @@ function setScreen(name) {
   state.screen = name;
   $('lineSheet').hidden = name !== 'line';
   $('recCanvas').hidden = name !== 'record';
-  $('fabSide').hidden = name !== 'line';
-  $('recSide').hidden = name === 'line';
+  $('testSheet').hidden = name !== 'test';
+  $('recBar').hidden = name !== 'record';
+  $('left').hidden = name === 'test';          // the test bench needs no library
+  $('right').hidden = name !== 'record';
+  $('btnLibrary').hidden = name === 'test';
+  $('btnLibrary').textContent = name === 'line' ? '+ ADD PROCESS' : 'LIBRARY';
+  $('btnSetup').hidden = name !== 'record';
   $('legendLine').hidden = name !== 'line';
-  $('legendRec').hidden = name === 'line';
-  $('stage').className = name === 'line' ? 'line' : '';
-  $('paletteHint').textContent = name === 'record' ? 'free copies' : 'add a process';
+  $('legendRec').hidden = name !== 'record';
+  $('legendTest').hidden = name !== 'test';
+  $('stage').className = name;
+  $('paletteHint').textContent = name === 'record' ? 'tap to place on the sheet' : 'tap to run as a process';
   for (const b of document.querySelectorAll('.tab[data-screen]')) b.classList.toggle('active', b.dataset.screen === name);
   rec.ui.placing = null;
+  closeDrawers();
   libraryDirty = true;
   if (name === 'line') line.render(true);
+  if (name === 'record') rec.fit();
+  if (name === 'test') renderOrders.sig = null;
 }
 for (const b of document.querySelectorAll('.tab[data-screen]')) b.onclick = () => setScreen(b.dataset.screen);
+
+// On a phone the side panels are drawers that slide up over the stage; on a
+// desktop they are columns and these are no-ops.
+function openDrawer(id) { $(id).classList.add('open'); $('scrim').hidden = false; }
+function closeDrawers() {
+  for (const id of ['left', 'right']) $(id).classList.remove('open');
+  $('scrim').hidden = true;
+}
+$('btnLibrary').onclick = () => openDrawer('left');
+$('btnSetup').onclick = () => openDrawer('right');
+$('scrim').onclick = closeDrawers;
+
+$('btnMenu').onclick = () => {
+  const open = $('menu').hidden;
+  $('menu').hidden = !open;
+  $('btnMenu').setAttribute('aria-expanded', String(open));
+};
+document.addEventListener('pointerdown', (e) => {
+  if (!$('menu').hidden && !e.target.closest('#menu, #btnMenu')) {
+    $('menu').hidden = true;
+    $('btnMenu').setAttribute('aria-expanded', 'false');
+  }
+});
 
 // --------------------------------------------------------- circuit library --
 
@@ -92,12 +125,15 @@ function buildLibrary() {
   const host = $('palette');
   host.innerHTML = '';
   libRows.clear();
+  // The bench defines a recipe, so nothing there is priced or "free": prices
+  // belong to the schedule, where a process actually runs.
+  const recordMode = state.screen === 'record';
   for (const t of allTypes(state)) {
     const div = document.createElement('div');
     div.className = 'part';
     const bom = t.ingredients.length
       ? t.ingredients.map((g) => `${g.count}x ${esc(typeOf(state, g.typeId).name)}`).join(' + ')
-      : (t.blurb || 'minted on demand');
+      : (t.blurb || (recordMode ? 'supplied part' : 'minted on demand'));
     // A part with eight single-wire ports should not spell all eight out.
     const fmt = (ps) => {
       const named = ps.map((p) => p.name + (p.width > 1 ? `[${p.width}]` : ''));
@@ -112,7 +148,7 @@ function buildLibrary() {
           <button class="icon" data-act="rename" title="rename">&#9998;</button>
           <button class="icon" data-act="scrap" title="scrap this design">&times;</button>
         </span>`}</div>
-      <div class="meta">${t.origin === 'base' ? mintPrice(t) : `${(t.timeMs / 1000).toFixed(1)}s cycle`}
+      <div class="meta">${t.origin === 'base' ? (recordMode ? '' : mintPrice(t)) : `${(t.timeMs / 1000).toFixed(1)}s cycle`}
         <span class="cost"></span></div>
       <div class="bom">${bom}</div>
       <div class="tally"></div>`;
@@ -124,6 +160,7 @@ function buildLibrary() {
       };
     });
     div.onclick = () => {
+      closeDrawers();                   // on a phone the library is a drawer over the stage
       if (state.screen === 'record') {
         rec.setPlacing(rec.ui.placing === t.id ? null : t.id);
         libraryDirty = true;
@@ -160,8 +197,7 @@ function renderLibrary() {
     if (!r) continue;
     const recordMode = state.screen === 'record';
     const proc = procOf(state, t.id);
-    r.cost.textContent = recordMode ? '· free copy'
-      : t.origin === 'base' ? '' : `· $${BAL.processCost} to run`;
+    r.cost.textContent = recordMode || t.origin === 'base' ? '' : `· $${BAL.processCost} to run`;
     r.tally.innerHTML = t.origin === 'base'
       ? ''
       : `${proc ? `<span class="runs">×${proc.n} running</span> · ` : ''}stock <b>${stockOf(state, t.id)}</b>`;
@@ -196,6 +232,7 @@ function renderTutorial() {
   card.hidden = false;
   if (renderTutorial.id !== step.id) {
     renderTutorial.id = step.id;
+    closeDrawers();                   // a drawer would sit over the card and its next target
     const n = state.tutorial.step;
     const chapterSteps = stepsOf(state);
     $('tutStep').textContent = `STEP ${n + 1} OF ${chapterSteps.length}`;
@@ -215,9 +252,24 @@ function renderTutorial() {
     void card.offsetWidth;            // restart the animation on every step
     card.classList.add('flash');
   }
-  // Only glow a control the player can actually see right now.
-  const visible = step.target && document.querySelector(step.target)?.offsetParent !== null;
-  setGlow(visible ? step.target : null);
+  // Only glow a control the player can actually see right now. On a phone the
+  // control may be inside a closed drawer: then glow the button that opens it
+  // and say so.
+  const target = step.target ? document.querySelector(step.target) : null;
+  const opener = target ? drawerOpener(target) : null;      // a closed drawer keeps offsetParent, so ask first
+  const visible = !opener && !!target && target.offsetParent !== null;
+  setGlow(visible ? step.target : opener ? `#${opener.id}` : null);
+  const cta = $('tutCta');
+  const want = `${step.cta ? `\u25b6 ${step.cta.toUpperCase()}` : ''}${opener ? ` <small>\u2014 under ${opener.textContent.trim()}</small>` : ''}`;
+  if (cta.dataset.was !== want) { cta.dataset.was = want; cta.innerHTML = want; }
+}
+
+/** The button that reveals a control hidden in a closed drawer, if there is one to press. */
+function drawerOpener(el) {
+  const drawer = el.closest('#left, #right');
+  if (!drawer || drawer.classList.contains('open')) return null;
+  const btn = $(drawer.id === 'left' ? 'btnLibrary' : 'btnSetup');
+  return btn && btn.offsetParent !== null ? btn : null;
 }
 
 // Notes fire once, when the thing they describe first happens, and never while
@@ -339,7 +391,7 @@ function announceNewClients() {
 const orderRows = new Map();
 function renderOrders() {
   const host = $('clients');
-  const sig = state.clients.map((c) => `${c.id}:${c.complete}:${c.seen}:${c.report?.at || 0}`).join('|')
+  const sig = state.clients.map((c) => `${c.id}:${stageOf(c)}:${c.seen}:${c.report?.at || 0}`).join('|')
     + '#' + allTypes(state).map((t) => t.id).join(',');
   if (sig !== renderOrders.sig) {
     renderOrders.sig = sig;
@@ -347,7 +399,7 @@ function renderOrders() {
     orderRows.clear();
     for (const c of state.clients) {
       const div = document.createElement('div');
-      div.className = `client${c.complete ? ' done' : ''}`;
+      div.className = `client${c.complete ? ' done' : ''}${c.closed ? ' closed' : ''}`;
       const wanted = clientSymbol(c);
       const testable = allTypes(state).filter((t) => t.origin !== 'base');
       div.onclick = () => { if (!c.seen) { c.seen = true; renderOrders.sig = null; } };
@@ -361,7 +413,6 @@ function renderOrders() {
         <div class="bar"><i></i></div>
         <div class="brief"></div>
         <div class="ships"></div>
-        <div class="where"></div>
         <div class="testrow">
           <select class="testPick" ${testable.length ? '' : 'disabled'}>
             ${testable.length
@@ -388,7 +439,6 @@ function renderOrders() {
         bar: div.querySelector('.bar > i'),
         brief: div.querySelector('.brief'),
         ships: div.querySelector('.ships'),
-        where: div.querySelector('.where'),
         report: div.querySelector('.report'),
       });
     }
@@ -397,17 +447,21 @@ function renderOrders() {
     const r = orderRows.get(c.id);
     if (!r) continue;
     r.bar.style.width = `${Math.min(100, (c.delivered / c.need) * 100)}%`;
-    r.brief.textContent = c.complete ? 'ORDER FILLED — maintenance contract'
+    const stage = stageOf(c);
+    r.brief.textContent = stage === 'closed' ? 'CONTRACT ENDED — they have all they need'
+      : stage === 'discount' ? `ORDER FILLED — ${Math.round(BAL.discountPay * 100)}% for ${stageLeft(c)} more`
+      : stage === 'maintenance' ? `MAINTENANCE — ${Math.round(BAL.maintenancePay * 100)}% for ${stageLeft(c)} more`
       : c.delivered === 0 ? c.brief : `${c.delivered} / ${c.need} shipped`;
 
     // Matching is automatic: anything that behaves like the order ships.
     const matches = matchingTypes(state, c);
     const at = state.rows.findIndex((row) => row.kind === 'ship' && row.clientId === c.id);
     r.ships.className = `ships${matches.length ? ' on' : ''}`;
-    r.ships.textContent = matches.length
-      ? `shipping ${matches.map((t) => t.name).join(', ')}`
-      : 'no circuit of yours behaves like this yet';
-    r.where.textContent = at < 0 ? '' : `schedule row ${String(at + 1).padStart(2, '0')} — move it there to change what it takes first`;
+    r.ships.textContent = c.closed
+      ? 'no longer buying'
+      : matches.length
+        ? `shipping ${matches.map((t) => t.name).join(', ')}${at < 0 ? '' : ` from schedule row ${String(at + 1).padStart(2, '0')}`}`
+        : 'no circuit of yours behaves like this yet';
 
     if (c.report !== r.shown) {
       r.shown = c.report;
@@ -447,12 +501,6 @@ function reportHtml(c, rep) {
     ${rep.fails.length > 12 ? `<div class="rline"><span>and ${rep.fails.length - 12} more</span></div>` : ''}`;
 }
 
-function renderLog() {
-  $('log').innerHTML = state.log.map((e) => `
-    <div class="entry ${e.kind}">${esc(e.text)}${e.detail ? `<div class="d">${esc(e.detail)}</div>` : ''}${
-      e.note ? `<div class="n">${esc(e.note)}</div>` : ''}</div>`).join('');
-}
-
 function renderAnalysis() {
   const host = $('analysis');
   const r = rec.preview();
@@ -460,7 +508,6 @@ function renderAnalysis() {
   if (!r.ok) {
     host.innerHTML = `<div class="verdict err"><div class="t">INCOMPLETE</div><div class="small">${esc(r.error)}</div></div>
       <div class="kv"><span>circuits placed</span><span>${partCount}</span></div>`;
-    $('btnDone').disabled = !rec.rec.recording;
     return;
   }
   const named = r.kind === 'comb' && r.outCount === 1 && r.table !== null;
@@ -554,7 +601,6 @@ function renderAnalysis() {
     <div class="kv"><span>NAND gates</span><span>${r.flat.gates.length} ($${(r.flat.gates.length * BAL.gateCost).toFixed(2)}/unit)</span></div>
     <div class="kv"><span>cycle time</span><span>${cycle.toFixed(1)}s</span></div>
     <div class="kv"><span>process cost</span><span>$${BAL.processCost}</span></div>`;
-  $('btnDone').disabled = !rec.rec.recording;
 }
 
 /** Say when a circuit ignores an input — usually why it failed to match. */
@@ -643,15 +689,15 @@ $('arityUp').onclick = () => { rec.setArity(rec.rec.arity + 1); termsDirty = tru
 $('arityDown').onclick = () => { rec.setArity(rec.rec.arity - 1); termsDirty = true; };
 $('outsUp').onclick = () => { rec.setOutCount(rec.rec.outCount + 1); termsDirty = true; };
 $('outsDown').onclick = () => { rec.setOutCount(rec.rec.outCount - 1); termsDirty = true; };
+// One button: it starts the stopwatch, and while the clock runs it stops it and
+// commits the recording. The dot pulses while recording.
 $('btnRecord').onclick = () => {
-  rec.start();
-  sfx('record');
-  $('btnRecord').disabled = true;
-  $('btnRecord').textContent = 'RECORDING';
-  $('btnRecord').classList.add('rec');
-  $('recHint').textContent = 'Stopwatch running. Place circuits, wire them to the terminals, then press DONE.';
-};
-$('btnDone').onclick = () => {
+  if (!rec.rec.recording) {
+    rec.start();
+    sfx('record');
+    renderRecordBar();
+    return;
+  }
   const t = rec.finish($('recName').value);
   if (!t) return;
   sfx('done');
@@ -662,14 +708,21 @@ $('btnDone').onclick = () => {
   setScreen('line');
 };
 $('btnDiscard').onclick = () => { rec.reset(); resetRecordControls(); };
+$('btnFit').onclick = () => rec.fit();
+function renderRecordBar() {
+  const on = rec.rec.recording;
+  const b = $('btnRecord');
+  b.classList.toggle('on', on);
+  b.querySelector('.lbl').textContent = on ? 'STOP' : 'RECORD';
+  b.querySelector('.clock').textContent = on ? `${(rec.rec.elapsed / 1000).toFixed(1)}s` : '';
+  $('btnDiscard').hidden = !on;
+}
 function resetRecordControls() {
   termsDirty = true;
-  $('btnRecord').disabled = false;
-  $('btnRecord').textContent = 'RECORD';
-  $('btnRecord').classList.remove('rec');
-  $('recHint').textContent = 'Set the input count, then press RECORD. The stopwatch runs until you press DONE, and that time becomes the process\'s cycle time.';
+  renderRecordBar();
   renderTerminals();
 }
+$('btnGrant').textContent = `ADVANCE ($${BAL.grantAmount})`;
 $('btnGrant').onclick = () => {
   sfx('cash');
   state.cash += BAL.grantAmount;
@@ -753,13 +806,13 @@ function frame(now) {
     const label = History.peek(state.screen === 'record' ? 'bench' : 'line');
     $('btnUndo').disabled = !label;
     $('btnUndo').textContent = label ? `UNDO ${label.toUpperCase()}`.slice(0, 26) : 'UNDO';
+    renderOrders();                       // the test bench, and the advance button
     if (state.screen === 'line') {
       line.render();
-      renderOrders();
-      renderLog();
-    } else {
+    } else if (state.screen === 'record') {
       renderAnalysis();
       renderImportPicker();
+      renderRecordBar();
       if (termsDirty || renderTerminals.sig !== terminalSignature()) {
         termsDirty = false;
         renderTerminals();
@@ -779,7 +832,6 @@ resetRecordControls();
 renderTutorial();
 renderLibrary();
 renderOrders();
-renderLog();
 requestAnimationFrame(frame);
 
 // Handy in the console, and the handle tools/browsertest.mjs drives.

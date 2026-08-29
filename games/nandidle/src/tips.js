@@ -40,13 +40,13 @@ export const TIPS = [
   {
     id: 'filled',
     title: 'A filled order keeps paying',
-    body: `An order that is complete does not stop buying — it drops to ${Math.round(BAL.maintenancePay * 100)}% of the rate and keeps taking whatever you send. If you would rather keep those circuits, move its shipping row below the processes that want them.`,
+    body: `An order that is complete does not stop buying — it drops to ${Math.round(BAL.discountPay * 100)}% of the rate for a while, then ${Math.round(BAL.maintenancePay * 100)}%, and eventually they have all they need and their row leaves the schedule. If you would rather keep those circuits, pause the row (■) or move it below the processes that want them.`,
     when: (s) => s.clients.some((c) => c.complete),
   },
   {
     id: 'testbench',
     title: 'You can buy the answer',
-    body: 'A client only accepts a circuit that behaves exactly like their order, so a near miss ships nothing and says nothing. Their testbench will tell you precisely which inputs come back wrong — it costs money, but guessing costs more.',
+    body: 'A client only accepts a circuit that behaves exactly like their order, so a near miss ships nothing and says nothing. On the TEST BENCH screen they will tell you precisely which inputs come back wrong — it costs money, but guessing costs more.',
     // Only once they have actually built something and missed: at the start
     // there is nothing to test and nothing to learn from testing it.
     when: (s) => s.clients.some((c) => !c.complete

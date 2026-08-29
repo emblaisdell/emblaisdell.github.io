@@ -4,7 +4,7 @@
 
 import {
   BAL, typeOf, stockOf, addProcess, removeProcess, moveRow, matchingTypes,
-  stopCopy, startCopy, activeCopies, splitProcess, payFor,
+  stopCopy, startCopy, activeCopies, splitProcess, payFor, heldBy, stageOf, stageLeft,
 } from './state.js';
 import { plan, ratePerMin } from './sim.js';
 import { symbolSvg } from './symbols.js';
@@ -38,8 +38,9 @@ export function createLineScreen(host, getCtx, toast) {
       <button class="ghost small" data-act="stop" title="stop one copy (keeps it, refunds the cycle)">&#9632;</button>
       <button class="ghost small" data-act="start" title="restart one stopped copy">&#9654;</button>
       <button class="ghost small" data-act="minus" title="dismantle one copy (+$${Math.round(BAL.processCost * BAL.refund)})">&minus;</button>
-      <button class="ghost small" data-act="plus" title="duplicate ($${BAL.processCost})">+</button>`
-      : '<span class="slotless"></span><span class="slotless"></span><span class="slotless"></span><span class="slotless"></span><span class="slotless"></span>'}`;
+      <button class="ghost small" data-act="plus" title="duplicate ($${BAL.processCost})">+<span class="lbl"> COPY</span></button>`
+      : `<button class="ghost small" data-act="pause" title="pause shipping to this client">&#9632;</button>
+      <span class="slotless"></span><span class="slotless"></span><span class="slotless"></span><span class="slotless"></span>`}`;
   }
 
   function build() {
@@ -65,8 +66,8 @@ export function createLineScreen(host, getCtx, toast) {
     if (!s.rows.length) {
       list.innerHTML = `<div class="empty">
         <b>Nothing scheduled.</b>
-        Record a circuit at the bench, then add it from the library on the left.
-        Each process costs $${BAL.processCost}; adding one you already run duplicates it instead.
+        Record a circuit at the bench, then pick it from the circuit library to run it as a process.
+        Each process costs $${BAL.processCost}; picking one you already run adds a copy to its row.
       </div>`;
       return;
     }
@@ -132,6 +133,9 @@ export function createLineScreen(host, getCtx, toast) {
               if (back) { back.n += made.n; back.stopped = (back.stopped || 0) + (made.stopped || 0); }
               s.rows = s.rows.filter((q) => q.id !== made.id);
             });
+          } else if (act === 'pause') {
+            row.paused = !row.paused;
+            History.push('line', `${row.paused ? 'pause' : 'resume'} ${name}`, () => { row.paused = !row.paused; });
           } else if (act === 'stop') {
             if (stopCopy(s, row.id)) History.push('line', `stop ${name}`, () => startCopy(s, row.id));
             else toast('Every copy is already stopped.', 'warn');
@@ -172,6 +176,7 @@ export function createLineScreen(host, getCtx, toast) {
       };
       if (isShip) {
         entry.bar = el.querySelector('.bar > i');
+        entry.pause = el.querySelector('[data-act=pause]');
       } else {
         // One slot per copy, so a row of ×8 reads as eight cycles at eight
         // different points rather than one bar for whichever finishes first.
@@ -217,9 +222,16 @@ export function createLineScreen(host, getCtx, toast) {
           : '<span class="ing short">no circuit of yours matches yet</span>';
         r.rate.textContent = `$${payFor(c, matches[0])}/ea`;
         r.bar.style.width = `${Math.min(100, (c.delivered / c.need) * 100)}%`;
-        r.status.className = `pstatus${matches.length ? '' : ' warn'}`;
-        r.status.textContent = c.complete
-          ? `${c.delivered} shipped · maintenance`
+        r.pause.innerHTML = row.paused ? '&#9654;' : '&#9632;';
+        r.pause.title = row.paused ? 'resume shipping to this client' : 'pause shipping to this client';
+        const stage = stageOf(c);
+        r.status.className = `pstatus${matches.length && !row.paused ? '' : ' warn'}`;
+        r.status.textContent = row.paused
+          ? `paused · ${c.delivered} shipped`
+          : stage === 'discount'
+            ? `filled · ${stageLeft(c)} more at ${Math.round(BAL.discountPay * 100)}%`
+          : stage === 'maintenance'
+            ? `maintenance · ${stageLeft(c)} more at ${Math.round(BAL.maintenancePay * 100)}%`
           : matches.length
             ? `${c.delivered}/${c.need} shipped${held ? '' : ' · waiting on stock'}`
             : `${c.delivered}/${c.need} · nothing to ship`;
@@ -229,10 +241,13 @@ export function createLineScreen(host, getCtx, toast) {
       const t = typeOf(s, row.typeId);
       r.recipe.innerHTML = t.ingredients.map((g) => {
         const have = stockOf(s, g.typeId);
+        const held = heldBy(row, g.typeId);
         const gate = g.typeId === 'nand';
-        const short = !gate && have < g.count;
+        const short = !gate && have + held < g.count;
+        // what the row has already taken towards its next cycle, then the shelf
+        const count = gate ? 'minted' : held ? `${held} held${have ? ` + ${have}` : ''}` : have;
         return `<span class="ing${short ? ' short' : ''}">${g.count}&times; ${esc(typeOf(s, g.typeId).name)}
-          <b>${gate ? 'minted' : have}</b></span>`;
+          <b>${count}</b></span>`;
       }).join('');
 
       const running = row.timers.length;

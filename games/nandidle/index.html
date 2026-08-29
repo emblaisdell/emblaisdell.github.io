@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Nand Idle</title>
 <link rel="icon" type="image/svg+xml" href="assets/nand.svg" />
 <link rel="stylesheet" href="src/style.css" />
@@ -12,49 +12,74 @@
   <header id="topbar">
     <div class="brand">
       <span class="mark">NAND</span><span class="mark2">IDLE</span>
-      <span class="sub">fabrication drawing / rev A</span>
     </div>
     <div class="readout" id="readout"></div>
-    <nav class="screens">
-      <button id="btnMute" class="tab" title="sound on/off" aria-pressed="false">SOUND</button>
+    <button id="btnGrant" class="ghost small" hidden>ADVANCE</button>
+    <nav class="screens" id="screens">
       <button class="tab" data-screen="line">PROCESSES</button>
-      <button class="tab" data-screen="record">RECORDING BENCH</button>
+      <button class="tab" data-screen="record">RECORD</button>
+      <button class="tab" data-screen="test">TEST BENCH</button>
     </nav>
+    <div class="tools">
+      <button id="btnUndo" class="ghost small" title="ctrl+Z">UNDO</button>
+      <button id="btnMenu" class="ghost small" title="menu" aria-expanded="false">&#8942;</button>
+    </div>
   </header>
 
+  <div id="menu" class="popover" hidden>
+    <ul class="legend" id="legendLine">
+      <li><b>library click</b> add or duplicate a process</li>
+      <li><b>&#9650; &#9660;</b> priority: the top draws first</li>
+      <li><b>+ / &minus;</b> duplicate or dismantle a copy</li>
+      <li><b>ctrl + Z</b> undo</li>
+    </ul>
+    <ul class="legend" id="legendRec" hidden>
+      <li><b>library click</b> then tap the sheet to place, again and again</li>
+      <li><b>drag pin -> pin</b> connect (and stop placing)</li>
+      <li><b>right click</b> remove</li>
+      <li><b>wheel / pinch / drag</b> zoom / pan &middot; <b>FIT</b> to see it all</li>
+    </ul>
+    <ul class="legend" id="legendTest" hidden>
+      <li><b>TEST</b> pay the client to run a circuit against their order</li>
+      <li>they report exactly which cases come back wrong</li>
+    </ul>
+    <div class="row">
+      <button id="btnMute" class="ghost small" title="sound on/off" aria-pressed="false">SOUND</button>
+      <button id="btnTutorial" class="ghost small">REPLAY TUTORIAL</button>
+    </div>
+    <div class="row"><span class="muted" id="saveNote">saved</span></div>
+    <div class="row"><button id="btnReset" class="ghost danger">START A NEW GAME</button></div>
+  </div>
+
   <div id="body">
-    <aside id="left">
+    <aside id="left" class="drawer">
       <section class="panel grow">
-        <h2>CIRCUIT LIBRARY <span id="paletteHint">add a process</span></h2>
+        <h2>CIRCUIT LIBRARY <span id="paletteHint"></span></h2>
         <div id="palette" class="scroll"></div>
-      </section>
-      <section class="panel">
-        <h2>CONTROLS</h2>
-        <ul class="legend" id="legendLine">
-          <li><b>library click</b> add or duplicate a process</li>
-          <li><b>&#9650; &#9660;</b> priority: the top draws first</li>
-          <li><b>+ / &minus;</b> duplicate or dismantle a copy</li>
-          <li><b>order book</b> pay for a test run</li>
-          <li><b>ctrl + Z</b> undo</li>
-        </ul>
-        <ul class="legend" id="legendRec" hidden>
-          <li><b>library click</b> then click the sheet to place</li>
-          <li><b>drag pin -> pin</b> connect</li>
-          <li><b>right click</b> remove</li>
-          <li><b>wheel / drag sheet</b> zoom / pan</li>
-        </ul>
-        <div class="row">
-          <button id="btnTutorial" class="ghost small">REPLAY TUTORIAL</button>
-        </div>
-        <div class="row"><button id="btnUndo" class="ghost small" title="ctrl+Z">UNDO</button></div>
-        <div class="row"><span class="muted" id="saveNote">saved</span></div>
-        <div class="row"><button id="btnReset" class="ghost danger">START A NEW GAME</button></div>
       </section>
     </aside>
 
     <div id="stage">
       <div id="lineSheet" class="sheet"></div>
       <canvas id="recCanvas" hidden></canvas>
+      <div id="testSheet" class="sheet" hidden>
+        <div class="sheet-head">
+          <h1>TEST BENCH</h1>
+          <div class="sheet-sub">pay a client to run one of your circuits against their specification &mdash; they report exactly which cases come back wrong</div>
+        </div>
+        <div id="clients"></div>
+      </div>
+      <div id="recBar" hidden>
+        <button id="btnRecord" class="rectoggle" title="start / stop the stopwatch">
+          <i class="dot"></i><span class="lbl">RECORD</span><span class="clock"></span>
+        </button>
+        <button id="btnDiscard" class="ghost small">DISCARD</button>
+        <button id="btnFit" class="ghost small" title="fit the whole sheet in view">FIT</button>
+      </div>
+      <div id="stageBar">
+        <button id="btnLibrary" class="ghost small fab">LIBRARY</button>
+        <button id="btnSetup" class="ghost small fab" hidden>SETUP</button>
+      </div>
       <div id="toast" hidden></div>
       <aside id="tip" hidden>
         <div class="tip-head"><span>NOTE</span><button id="tipClose" class="ghost small">GOT IT</button></div>
@@ -72,6 +97,7 @@
             <h3 id="tutTitle"></h3>
             <p id="tutBody"></p>
             <div class="tut-foot">
+              <span id="tutCta" class="tut-cta"></span>
               <button id="tutSkip" class="ghost small">SKIP TUTORIAL</button>
               <button id="tutNext" class="primary" hidden>FINISH</button>
             </div>
@@ -80,53 +106,35 @@
       </aside>
     </div>
 
-    <aside id="right">
-      <div id="fabSide">
-        <section class="panel">
-          <h2>ORDER BOOK <span>matched automatically</span></h2>
-          <div id="clients"></div>
-          <button id="btnGrant" class="ghost small" hidden>REQUEST ADVANCE ($60)</button>
-        </section>
-        <section class="panel grow">
-          <h2>SHOP LOG</h2>
-          <div id="log" class="scroll"></div>
-        </section>
-      </div>
-
-      <div id="recSide" hidden>
-        <section class="panel">
-          <h2>TERMINALS <span>name the ports</span></h2>
-          <div class="row">
-            <select id="importPick" title="copy a commission's ports and name"></select>
-            <button id="btnImport" class="ghost small">IMPORT</button>
-          </div>
-          <div class="row">
-            <span class="muted">INPUTS</span>
-            <button id="arityDown" class="ghost small">&minus;</button>
-            <span id="arityVal" class="big">2</span>
-            <button id="arityUp" class="ghost small">+</button>
-            <span class="muted">OUTPUTS</span>
-            <button id="outsDown" class="ghost small">&minus;</button>
-            <span id="outsVal" class="big">1</span>
-            <button id="outsUp" class="ghost small">+</button>
-          </div>
-          <div id="termNames" class="terms"></div>
-          <div class="row">
-            <input id="recName" placeholder="CIRCUIT NAME" maxlength="22" />
-          </div>
-          <div class="row">
-            <button id="btnRecord" class="primary">RECORD</button>
-            <button id="btnDone" class="primary" disabled>DONE</button>
-            <button id="btnDiscard" class="ghost">DISCARD</button>
-          </div>
-          <p class="muted small" id="recHint">Set the input count, then press RECORD. The stopwatch runs until you press DONE, and that time becomes the process's cycle time.</p>
-        </section>
-        <section class="panel grow">
-          <h2>ANALYSIS</h2>
-          <div id="analysis"></div>
-        </section>
-      </div>
+    <aside id="right" class="drawer" hidden>
+      <section class="panel">
+        <h2>TERMINALS <span>name the ports</span></h2>
+        <div class="row">
+          <select id="importPick" title="copy an order's ports and name"></select>
+          <button id="btnImport" class="ghost small">IMPORT</button>
+        </div>
+        <div class="row">
+          <span class="muted">INPUTS</span>
+          <button id="arityDown" class="ghost small">&minus;</button>
+          <span id="arityVal" class="big">2</span>
+          <button id="arityUp" class="ghost small">+</button>
+          <span class="muted">OUTPUTS</span>
+          <button id="outsDown" class="ghost small">&minus;</button>
+          <span id="outsVal" class="big">1</span>
+          <button id="outsUp" class="ghost small">+</button>
+        </div>
+        <div id="termNames" class="terms"></div>
+        <div class="row">
+          <input id="recName" placeholder="CIRCUIT NAME" maxlength="22" />
+        </div>
+        <p class="muted small" id="recHint">Press RECORD to start the stopwatch, build between the terminals, then press STOP. The time on the clock becomes the cycle time of the process that will carry out this recipe.</p>
+      </section>
+      <section class="panel grow">
+        <h2>ANALYSIS</h2>
+        <div id="analysis" class="scroll"></div>
+      </section>
     </aside>
+    <div id="scrim" hidden></div>
   </div>
 </div>
 <script type="module" src="src/main.js"></script>

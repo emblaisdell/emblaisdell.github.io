@@ -4,7 +4,7 @@
 
 import * as V from './view.js';
 import { C } from './view.js';
-import { typeOf, registerRecording, BAL } from './state.js';
+import { typeOf, registerRecording } from './state.js';
 import { canonicalName, INPUT_NAMES, rowCount, bitAt } from './circuits.js';
 import { analyse, MAX_PORTS, MAX_WIDTH } from './netlist.js';
 import { drawSymbol, leadYs, spec, VB } from './symbols.js';
@@ -13,8 +13,9 @@ import * as History from './undo.js';
 
 const FRAME = { x: -420, y: -250, w: 840, h: 500 };
 const SNAP = 6;
-const PIN_HIT = 15;        // generous: the drawn pin is 4px, the target is not
+const PIN_HIT = 22;        // generous: the drawn pin is 4px, the target is not
 const BODY_PAD = 7;        // parts are easier to grab than they look
+const TERM_W = 130;        // room either side of the frame for the terminal boxes
 
 export const inPortsOf = (t) => t.inPorts || Array.from({ length: t.arity }, (_, i) => ({ name: (t.inNames || [])[i] || `IN${i}`, width: 1 }));
 export const outPortsOf = (t) => t.outPorts || Array.from({ length: t.outCount || 1 }, (_, i) => ({ name: (t.outNames || ['Y'])[i] || `O${i}`, width: 1 }));
@@ -82,6 +83,10 @@ function planFurniture(ctx, active) {
 export function createRecordScreen(canvas, ctxGet) {
   const cam = new V.Camera();
   cam.z = 0.9;
+  // Hit targets are sized in screen pixels, so a finger on a zoomed-out phone
+  // is as forgiving as a mouse at 1:1.
+  const pinTol = () => Math.max(PIN_HIT, 26 / cam.z);
+  const bodyPad = () => Math.max(BODY_PAD, 10 / cam.z);
   const rec = {
     arity: 2, outCount: 1, parts: [], outs: [null],
     inWidths: new Array(10).fill(1), outWidths: new Array(10).fill(1),
@@ -151,26 +156,118 @@ export function createRecordScreen(canvas, ctxGet) {
     return result;
   }
 
-  function hitPin(w) {
+  /**
+   * The pin nearest the pointer, if any is within reach. Pins are tested
+   * before part bodies, and the reach is deliberately wider than a pin looks —
+   * it overlaps the body, and that is fine: wiring is what a pin is for.
+   * Nearest wins, so the reach can be wider than the gap between two inputs.
+   */
+  function hitPin(w, tol = pinTol()) {
+    let best = null;
+    const consider = (x, y, hit) => {
+      const d = Math.hypot(x - w.x, y - w.y);
+      if (d < tol && (!best || d < best.d)) best = { d, hit };
+    };
     const t = termPins(rec);
-    for (const p of t.ins) if (Math.hypot(p.x - w.x, p.y - w.y) < PIN_HIT) return { kind: 'term-in', i: p.i };
-    for (const p of t.outs) if (Math.hypot(p.x - w.x, p.y - w.y) < PIN_HIT) return { kind: 'term-out', i: p.i };
+    for (const p of t.ins) consider(p.x, p.y, { kind: 'term-in', i: p.i });
+    for (const p of t.outs) consider(p.x, p.y, { kind: 'term-out', i: p.i });
     const s = S();
     for (const p of rec.parts) {
       const g = partGeom(s, p);
-      for (const q of g.outs) if (Math.hypot(q.x - w.x, q.y - w.y) < PIN_HIT) return { kind: 'part-out', part: p, i: q.i };
-      for (const q of g.ins) if (Math.hypot(q.x - w.x, q.y - w.y) < PIN_HIT) return { kind: 'part-in', part: p, i: q.i };
+      for (const q of g.outs) consider(q.x, q.y, { kind: 'part-out', part: p, i: q.i });
+      for (const q of g.ins) consider(q.x, q.y, { kind: 'part-in', part: p, i: q.i });
     }
+    return best?.hit || null;
+  }
+
+  /**
+   * Where a wire being dragged would land: a pin within (wider) reach, else
+   * the nearest free input of whatever part the pointer is over, else an OUT
+   * terminal box. Letting go anywhere on a gate connects it.
+   */
+  function dropTarget(w) {
+    const pin = hitPin(w, pinTol() * 1.4);
+    if (pin && (pin.kind === 'part-in' || pin.kind === 'term-out')) return pin;
+    const p = hitPart(w);
+    if (p) {
+      const g = partGeom(S(), p);
+      let best = null;
+      g.ins.forEach((q, i) => {
+        const d = Math.hypot(q.x - w.x, q.y - w.y) + (p.ins[i] ? 1e6 : 0);   // a free input first
+        if (!best || d < best.d) best = { d, i };
+      });
+      if (best) return { kind: 'part-in', part: p, i: best.i };
+    }
+    const term = hitTerminal(w);
+    if (term && term.kind === 'out') return { kind: 'term-out', i: term.i };
     return null;
   }
   function hitPart(w) {
     const s = S();
+    const pad = bodyPad();
     for (let i = rec.parts.length - 1; i >= 0; i--) {
       const p = rec.parts[i]; const g = partGeom(s, p);
-      if (w.x >= p.x - BODY_PAD && w.x <= p.x + g.w + BODY_PAD
-        && w.y >= p.y - BODY_PAD && w.y <= p.y + g.h + BODY_PAD) return p;
+      if (w.x >= p.x - pad && w.x <= p.x + g.w + pad
+        && w.y >= p.y - pad && w.y <= p.y + g.h + pad) return p;
     }
     return null;
+  }
+
+  /** Drop a copy of the selected circuit. It stays selected: the next tap drops another. */
+  function place(w) {
+    const t = typeOf(S(), ui.placing);
+    mark('place');
+    sfx('place');
+    rec.parts.push({
+      id: `r${rec.seq++}`, typeId: ui.placing,
+      x: Math.round((w.x - 52) / SNAP) * SNAP, y: Math.round((w.y - 24) / SNAP) * SNAP,
+      ins: Array.from({ length: t.arity }, () => null),
+    });
+  }
+
+  /** Pick a wire up from a pin: a fresh one from an output, or an existing one from an input. */
+  function startLink(pin, w) {
+    if (pin.kind === 'part-out') {
+      ui.sel = { kind: 'part', id: pin.part.id };
+      ui.mode = 'link';
+      ui.drag = { src: { k: 'part', id: pin.part.id, out: pin.i }, to: w };
+    } else if (pin.kind === 'term-in') {
+      ui.sel = { kind: 'in', i: pin.i };
+      ui.mode = 'link';
+      ui.drag = { src: { k: 'in', i: pin.i }, to: w };
+    } else if (pin.kind === 'part-in') {
+      // Pick the existing wire up and carry it somewhere else, rather than
+      // just dropping it on the floor.
+      ui.sel = { kind: 'part', id: pin.part.id };
+      const had = pin.part.ins[pin.i];
+      pin.part.ins[pin.i] = null;
+      if (had) { ui.mode = 'link'; ui.drag = { src: had, to: w }; }
+    } else if (pin.kind === 'term-out') {
+      ui.sel = { kind: 'out', i: pin.i };
+      const had = rec.outs[pin.i];
+      rec.outs[pin.i] = null;
+      if (had) { ui.mode = 'link'; ui.drag = { src: had, to: w }; }
+    }
+  }
+
+  /**
+   * Show the whole sheet: frame, terminal boxes and labels, clear of the
+   * toolbar at the top and the title block at the bottom. Called when the
+   * screen opens and whenever the canvas changes size; zooming by hand after
+   * that is respected until the next resize.
+   */
+  let fitted = { w: 0, h: 0 };
+  function fit() {
+    const r = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+    fitted = { w, h };
+    const top = 62, bottom = w >= 600 ? 72 : 16, side = 10;
+    const rw = w - side * 2, rh = h - top - bottom;
+    cam.z = Math.max(0.15, Math.min(1.15, rw / (FRAME.w + TERM_W * 2), rh / (FRAME.h + 70)));
+    cam.x = FRAME.x + FRAME.w / 2;
+    // the frame's centre lands in the middle of the region left over
+    const cy = (top + (h - bottom)) / 2;
+    cam.y = FRAME.y + FRAME.h / 2 - (cy - h / 2) / cam.z;
   }
 
   /** The terminal boxes are click targets in their own right, not just pins. */
@@ -195,66 +292,65 @@ export function createRecordScreen(canvas, ctxGet) {
   const screenPos = (e) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
   const worldPos = (e) => { const r = canvas.getBoundingClientRect(); return cam.toWorld(screenPos(e), r.width, r.height); };
 
+  // Fingers currently on the sheet, so two of them can pinch.
+  const pointers = new Map();
+  let pinch = null;
+
   canvas.addEventListener('pointerdown', (e) => {
     if (ctxGet().state.screen !== 'record') return;
-    const s = S(); const w = worldPos(e);
     canvas.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, screenPos(e));
+    if (pointers.size === 2) {
+      // A second finger turns whatever the first was doing into a pinch.
+      const [a, b] = [...pointers.values()];
+      pinch = { d: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), z: cam.z };
+      ui.mode = 'pinch'; ui.drag = null;
+      return;
+    }
+    if (pointers.size > 2) return;
+    const w = worldPos(e);
     ui.sel = null;
     if (e.button === 2) {
       const p = hitPart(w);
       if (p) removePart(p);
       return;
     }
-    if (ui.placing) {
-      if (!rec.recording) { toast('Press RECORD before building.', 'warn'); ui.placing = null; return; }
-      const t = typeOf(s, ui.placing);
-      mark('place');
-      sfx('place');
-      rec.parts.push({
-        id: `r${rec.seq++}`, typeId: ui.placing,
-        x: Math.round((w.x - 52) / SNAP) * SNAP, y: Math.round((w.y - 24) / SNAP) * SNAP,
-        ins: Array.from({ length: t.arity }, () => null),
-      });
-      if (!e.shiftKey) ui.placing = null;
-      return;
-    }
+    // Pins come first even while placing: starting a wire is how placing ends.
     const pin = hitPin(w);
-    if (pin) {
-      if (pin.kind === 'part-out') {
-        ui.sel = { kind: 'part', id: pin.part.id };
-        ui.mode = 'link';
-        ui.drag = { src: { k: 'part', id: pin.part.id, out: pin.i }, to: w };
-      } else if (pin.kind === 'term-in') {
-        ui.sel = { kind: 'in', i: pin.i };
-        ui.mode = 'link';
-        ui.drag = { src: { k: 'in', i: pin.i }, to: w };
-      } else if (pin.kind === 'part-in') {
-        // Pick the existing wire up and carry it somewhere else, rather than
-        // just dropping it on the floor.
-        ui.sel = { kind: 'part', id: pin.part.id };
-        const had = pin.part.ins[pin.i];
-        pin.part.ins[pin.i] = null;
-        if (had) { ui.mode = 'link'; ui.drag = { src: had, to: w }; }
-      } else if (pin.kind === 'term-out') {
-        ui.sel = { kind: 'out', i: pin.i };
-        const had = rec.outs[pin.i];
-        rec.outs[pin.i] = null;
-        if (had) { ui.mode = 'link'; ui.drag = { src: had, to: w }; }
-      }
-      return;
-    }
+    if (pin) { ui.placing = null; startLink(pin, w); return; }
     const p = hitPart(w);
     if (p) { ui.mode = 'move'; ui.sel = { kind: 'part', id: p.id }; ui.drag = { id: p.id, dx: w.x - p.x, dy: w.y - p.y }; return; }
     const term = hitTerminal(w);
     if (term) { ui.sel = term; return; }
+    if (ui.placing) {
+      if (!rec.recording) { toast('Press RECORD before building.', 'warn'); ui.placing = null; return; }
+      if (e.pointerType === 'touch') {
+        // A finger may be about to pan or pinch: place on lift, if it stayed put.
+        ui.mode = 'tap-place';
+        ui.drag = { sx: e.clientX, sy: e.clientY, cx: cam.x, cy: cam.y };
+        return;
+      }
+      place(w);
+      return;
+    }
     ui.mode = 'pan';
     ui.drag = { sx: e.clientX, sy: e.clientY, cx: cam.x, cy: cam.y };
   });
 
   canvas.addEventListener('pointermove', (e) => {
     if (ctxGet().state.screen !== 'record') return;
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, screenPos(e));
     ui.mouse = screenPos(e); ui.world = worldPos(e);
-    if (ui.mode === 'pan') {
+    if (ui.mode === 'pinch') {
+      if (!pinch || pointers.size < 2) return;
+      const [a, b] = [...pointers.values()];
+      const d = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      const r = canvas.getBoundingClientRect();
+      const target = Math.max(0.15, Math.min(2.4, pinch.z * (d / pinch.d)));
+      cam.zoomAt({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, target / cam.z, r.width, r.height);
+    } else if (ui.mode === 'tap-place') {
+      if (Math.hypot(e.clientX - ui.drag.sx, e.clientY - ui.drag.sy) > 12) ui.mode = 'pan';   // a drag after all
+    } else if (ui.mode === 'pan') {
       cam.x = ui.drag.cx - (e.clientX - ui.drag.sx) / cam.z;
       cam.y = ui.drag.cy - (e.clientY - ui.drag.sy) / cam.z;
     } else if (ui.mode === 'move') {
@@ -265,11 +361,18 @@ export function createRecordScreen(canvas, ctxGet) {
     }
   });
 
-  canvas.addEventListener('pointerup', (e) => {
+  function pointerEnd(e, cancelled) {
     if (ctxGet().state.screen !== 'record') return;
-    if (ui.mode === 'link') {
+    pointers.delete(e.pointerId);
+    if (ui.mode === 'pinch') {
+      if (pointers.size < 2) { ui.mode = 'idle'; ui.drag = null; pinch = null; }
+      return;
+    }
+    if (ui.mode === 'tap-place') {
+      if (!cancelled && ui.placing) place(worldPos(e));
+    } else if (ui.mode === 'link' && !cancelled) {
       const w = worldPos(e);
-      const pin = hitPin(w);
+      const pin = dropTarget(w);
       if (pin && pin.kind === 'part-in') {
         if (pin.part.id === ui.drag.src.id) toast('A circuit cannot feed itself.');
         else { mark('wire'); pin.part.ins[pin.i] = ui.drag.src; sfx('wire'); }
@@ -282,7 +385,9 @@ export function createRecordScreen(canvas, ctxGet) {
       }
     }
     ui.mode = 'idle'; ui.drag = null;
-  });
+  }
+  canvas.addEventListener('pointerup', (e) => pointerEnd(e, false));
+  canvas.addEventListener('pointercancel', (e) => pointerEnd(e, true));
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   canvas.addEventListener('wheel', (e) => {
     if (ctxGet().state.screen !== 'record') return;
@@ -308,7 +413,7 @@ export function createRecordScreen(canvas, ctxGet) {
   }
 
   const api = {
-    rec, ui, cam, onKey, preview, reset, toast,
+    rec, ui, cam, onKey, preview, reset, toast, fit,
     setPlacing: (id) => { ui.placing = id; },
     setArity(n) {
       if (rec.recording) return toast('Terminals are fixed once recording starts.', 'warn');
@@ -365,6 +470,7 @@ export function createRecordScreen(canvas, ctxGet) {
     },
     render(dt) {
       const { ctx, w, h } = V.fitCanvas(canvas);
+      if (w !== fitted.w || h !== fitted.h) fit();     // first frame, rotation, resize
       const s = S();
       if (ui.toastT > 0) ui.toastT -= dt;
       if (rec.recording) rec.elapsed = performance.now() - rec.startTs;
@@ -491,24 +597,21 @@ export function createRecordScreen(canvas, ctxGet) {
       }
       ctx.restore();
 
-      V.sheet(ctx, w, h, 'NAND IDLE — RECORDING BENCH', 'COMBINATIONAL DESIGN SHEET',
-        rec.recording ? 'REC' : 'IDLE');
-
-      // stopwatch
-      const secs = rec.elapsed / 1000;
-      V.box(ctx, 26, 26, 168, 44, { stroke: rec.recording ? C.bad : C.inkSoft });
-      V.label(ctx, rec.recording ? 'STOPWATCH — RUNNING' : 'STOPWATCH', 34, 42, { size: 9, color: C.inkSoft, track: 1 });
-      V.label(ctx, `${secs.toFixed(1)}s`, 34, 62, { size: 17, weight: 600, color: rec.recording ? C.bad : C.inkSoft });
-      V.label(ctx, `CYCLE ${(Math.min(BAL.recordMaxMs, Math.max(BAL.recordMinMs, rec.elapsed)) / 1000).toFixed(1)}s`,
-        186, 62, { size: 9, align: 'right', color: C.inkSoft });
+      // The sheet border and title block are drafting-room furniture; a phone
+      // has no room for them.
+      if (w >= 600) {
+        V.sheet(ctx, w, h, 'NAND IDLE — RECORDING BENCH', 'DESIGN SHEET',
+          rec.recording ? 'REC' : 'IDLE');
+      }
 
       if (ui.toastT > 0 && ui.toast) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, ui.toastT / 400);
         ctx.font = `12px ${V.MONO}`;
-        const tw = ctx.measureText(ui.toast.msg).width + 40;
-        V.box(ctx, w / 2 - tw / 2, 26, tw, 30, { stroke: ui.toast.kind === 'bad' ? C.bad : C.warn });
-        V.label(ctx, ui.toast.msg, w / 2, 46, { size: 12, align: 'center', color: ui.toast.kind === 'bad' ? C.bad : C.warn });
+        const tw = Math.min(w - 20, ctx.measureText(ui.toast.msg).width + 40);
+        const ty = w >= 600 ? 26 : 62;                 // under the record bar on a phone
+        V.box(ctx, w / 2 - tw / 2, ty, tw, 30, { stroke: ui.toast.kind === 'bad' ? C.bad : C.warn });
+        V.label(ctx, ui.toast.msg, w / 2, ty + 20, { size: 12, align: 'center', color: ui.toast.kind === 'bad' ? C.bad : C.warn });
         ctx.restore();
       }
     },

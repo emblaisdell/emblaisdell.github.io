@@ -30,7 +30,7 @@ export class Camera {
   }
   zoomAt(p, factor, w, h) {
     const before = this.toWorld(p, w, h);
-    this.z = Math.max(0.35, Math.min(2.4, this.z * factor));
+    this.z = Math.max(0.15, Math.min(2.4, this.z * factor));
     const after = this.toWorld(p, w, h);
     this.x += before.x - after.x;
     this.y += before.y - after.y;

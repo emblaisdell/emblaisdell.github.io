@@ -11,62 +11,62 @@ const pop = (b) => b.reduce((s, x) => s + x, 0);
 export const CLIENT_CATALOG = [
   {
     company: 'INVERSE HOLDINGS', name: 'NOT', gates: 1, ins: ['A'], out: 'Y', arity: 1,
-    fn: ([a]) => !a, need: 15, pay: 2,
+    fn: ([a]) => !a, need: 15,
     brief: 'We need signal inverters. One input, one output, opposite.',
   },
   {
     company: 'CONJUNCTION LTD', name: 'AND', gates: 2, ins: ['A', 'B'], out: 'Y', arity: 2,
-    fn: ([a, b]) => !!(a && b), need: 25, pay: 3,
+    fn: ([a, b]) => !!(a && b), need: 25,
     brief: 'Both or nothing.',
   },
   {
     company: 'UNION WORKS', name: 'OR', gates: 3, ins: ['A', 'B'], out: 'Y', arity: 2,
-    fn: ([a, b]) => !!(a || b), need: 30, pay: 5,
+    fn: ([a, b]) => !!(a || b), need: 30,
     brief: 'Either will do.',
   },
   {
     company: 'DIFFERENCE ENGINE CO', name: 'XOR', gates: 4, ins: ['A', 'B'], out: 'Y', arity: 2,
-    fn: ([a, b]) => !!(a ^ b), need: 40, pay: 7,
+    fn: ([a, b]) => !!(a ^ b), need: 40,
     brief: 'High when the inputs disagree. Harder than it looks.',
   },
   {
     company: 'CARRY & SONS', name: 'ADDER CARRY', gates: 11, ins: ['A', 'B', 'CIN'], out: 'COUT', arity: 3,
-    fn: (b) => pop(b) >= 2, need: 45, pay: 10,
+    fn: (b) => pop(b) >= 2, need: 45,
     brief: 'Majority of three. The carry half of a full adder.',
   },
   {
     company: 'SIGMA ARITHMETIC', name: 'ADDER SUM', gates: 8, ins: ['A', 'B', 'CIN'], out: 'SUM', arity: 3,
-    fn: (b) => pop(b) % 2 === 1, need: 50, pay: 15,
+    fn: (b) => pop(b) % 2 === 1, need: 50,
     brief: 'Odd parity of three inputs. The sum half of a full adder.',
   },
   {
     company: 'SELECTOR SYSTEMS', name: 'MUX 2:1', gates: 4, ins: ['A', 'B', 'SEL'], out: 'Y', arity: 3,
-    fn: ([a, b, s]) => (s ? !!b : !!a), need: 60, pay: 11,
+    fn: ([a, b, s]) => (s ? !!b : !!a), need: 60,
     brief: 'SEL picks: 0 routes A, 1 routes B.',
   },
   {
     company: 'COMPARATOR MUTUAL', name: 'EQUAL 2-BIT', gates: 12, ins: ['A0', 'A1', 'B0', 'B1'], out: 'EQ', arity: 4,
-    fn: ([a0, a1, b0, b1]) => a0 === b0 && a1 === b1, need: 80, pay: 20,
+    fn: ([a0, a1, b0, b1]) => a0 === b0 && a1 === b1, need: 80,
     brief: 'Two 2-bit numbers A1A0 and B1B0. High when equal.',
   },
   {
     company: 'FULL SUM WORKS', name: 'FULL ADDER', gates: 15, ins: ['A', 'B', 'CIN'], out: ['SUM', 'COUT'], arity: 3,
     symbol: 'box', label: 'Σ',
-    fns: [(b) => pop(b) % 2 === 1, (b) => pop(b) >= 2], need: 90, pay: 26,
+    fns: [(b) => pop(b) % 2 === 1, (b) => pop(b) >= 2], need: 90,
     brief: 'Both halves in one part: the sum bit and the carry out. Two outputs.',
   },
   {
     company: 'HOLDFAST MEMORY', name: 'SR LATCH', gates: 2, ins: ['SET', 'RESET'], out: ['Q', 'NQ'], arity: 2,
     symbol: 'box', label: 'SR',
     seq: seqSpec('sr-latch'),
-    need: 100, pay: 34,
+    need: 100,
     brief: 'Our first part that remembers. SET low makes Q high and it stays high; RESET low clears it. Never both low at once — we will not test that.',
   },
   {
     company: 'HOLDFAST MEMORY', name: 'D LATCH', gates: 4, ins: ['D', 'ENABLE'], out: ['Q'], arity: 2,
     symbol: 'box', label: 'D',
     seq: seqSpec('d-latch'),
-    need: 110, pay: 44,
+    need: 110,
     brief: 'While ENABLE is high, Q follows D. When ENABLE drops, Q holds whatever it saw last.',
   },
   {
@@ -74,7 +74,7 @@ export const CLIENT_CATALOG = [
     unlocks: ['clock'],
     symbol: 'ff', label: 'D',
     seq: seqSpec('d-flip-flop'),
-    need: 120, pay: 60,
+    need: 120,
     brief: 'Q takes D only on the rising edge of CLK, and ignores D the rest of the time. Two latches back to back, one enabled while the other is not.',
   },
   {
@@ -82,7 +82,7 @@ export const CLIENT_CATALOG = [
     out: ['S', 'COUT'], outWidths: [4, 1], arity: 3,
     symbol: 'box', label: '\u03a34',
     values: ([a, b, cin]) => { const t = a + b + cin; return [t & 15, t >> 4]; },
-    need: 60, pay: 90,
+    need: 60,
     unlocks: ['bundle2', 'tap2', 'bundle3', 'tap3', 'bundle4', 'tap4'],
     brief: 'Four bits at a time. Group your wires: A and B arrive as four-wide buses, and the sum goes back out as one.',
   },
@@ -91,7 +91,7 @@ export const CLIENT_CATALOG = [
     out: ['P'], outWidths: [4], arity: 2,
     symbol: 'box', label: '\u00d7',
     values: ([a, b]) => [a * b],
-    need: 60, pay: 110,
+    need: 60,
     brief: 'Two two-bit numbers in, their product out. Four bits is enough room for all of it.',
   },
   {
@@ -112,7 +112,7 @@ export const CLIENT_CATALOG = [
         },
       },
     },
-    need: 70, pay: 140,
+    need: 70,
     brief: 'Four flip-flops that share a clock, and only take D when LOAD is high. Otherwise they keep what they have.',
   },
   {
@@ -136,7 +136,7 @@ export const CLIENT_CATALOG = [
         },
       },
     },
-    need: 80, pay: 180,
+    need: 80,
     brief: 'Counts rising edges, wrapping at sixteen. RESETB low clears it.',
   },
   {
@@ -145,7 +145,7 @@ export const CLIENT_CATALOG = [
     symbol: 'box', label: '+1',
     stream: true,
     values: ([x]) => [(x + 1) & 255],
-    need: 90, pay: 220, unlocks: ['bundle5', 'tap5', 'bundle6', 'tap6', 'bundle7', 'tap7', 'bundle8', 'tap8'],
+    need: 90, unlocks: ['bundle5', 'tap5', 'bundle6', 'tap6', 'bundle7', 'tap7', 'bundle8', 'tap8'],
     brief: 'We send a stream of bytes; send them back one higher, wrapping at 255. A byte is eight wires bundled onto one.',
   },
   {
@@ -169,7 +169,7 @@ export const CLIENT_CATALOG = [
         },
       },
     },
-    need: 100, pay: 300,
+    need: 100,
     brief: 'Add each byte of the stream to a running total as it arrives, and keep the total on the output. RESETB low clears it; it wraps at 255.',
   },
   {
@@ -193,7 +193,7 @@ export const CLIENT_CATALOG = [
         },
       },
     },
-    need: 120, pay: 420,
+    need: 120,
     brief: 'One Fibonacci number per rising edge, wrapping at 255: 0, 1, 1, 2, 3, 5, 8. Two registers and an adder, feeding each other.',
   },
   {
@@ -220,7 +220,7 @@ export const CLIENT_CATALOG = [
         },
       },
     },
-    need: 150, pay: 600,
+    need: 150,
     brief: 'A machine with one register. Each rising edge does what OP says: 0 nothing, 1 load DATA, 2 add DATA, 3 exclusive-or DATA. The smallest processor worth the name.',
   },
 ];
@@ -307,6 +307,18 @@ for (const spec of CLIENT_CATALOG) {
   spec.kind = 'comb';
 }
 
+/**
+ * What an order pays per unit, from what it costs to build: a multiple of its
+ * gates that climbs gently down the ladder, so later orders pay better per
+ * gate but never come unmoored from cost. (Hand-set prices did: the memory
+ * orders paid ten times per gate what the adders before them did.)
+ */
+export function priceCatalogue({ gateCost, payBase, payStep }) {
+  CLIENT_CATALOG.forEach((spec, i) => {
+    spec.pay = Math.ceil(spec.gates * gateCost * (payBase + payStep * i));
+  });
+}
+
 export function makeClient(s, spec) {
   return {
     id: `cl${s.seq++}`,
@@ -318,7 +330,7 @@ export function makeClient(s, spec) {
     seq: spec.seq ? { vectors: spec.seq.vectors, expect: spec.seq.expect } : null,
     inNames: spec.ins.slice(), outNames: spec.outs.slice(), outName: spec.outs[0],
     need: spec.need, pay: spec.pay,
-    delivered: 0, complete: false, rejected: 0, lastError: null, seen: false,
+    delivered: 0, complete: false, closed: false, rejected: 0, lastError: null, seen: false,
     report: null,          // the last testbench run, if the player paid for one
   };
 }
