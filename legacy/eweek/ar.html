@@ -14,8 +14,15 @@
       integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
       crossorigin="anonymous"></script>
     <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+    <!-- Disabled 2026-09-02: RawGit shut down in 2019 and these hostnames are
+         now operated by someone else. cdn.rawgit.com currently 302s to jsDelivr
+         and rawgit.com returns "RawGit is no longer operational" — but whoever
+         holds that DNS decides what those URLs return tomorrow, and it would
+         execute on ebenblaisdell.com with access to this origin's localStorage.
+         Neither tag carried an integrity hash to catch a substitution.
     <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.6.2/aframe/build/aframe-ar.js"></script>
     <script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
+    -->
     <script src="./script.js"></script>
   </head>
   <body style='margin : 0px; overflow: hidden;'>
