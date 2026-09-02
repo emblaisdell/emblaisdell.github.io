@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'none';
+  script-src 'self';
+  style-src 'self';
+  connect-src https://uegea67p3hy7ftwy5xkoynkd340muspa.lambda-url.us-east-1.on.aws;
+  base-uri 'none';
+  form-action 'none';
+">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>Budget</title>
+<link rel="stylesheet" href="budget.css">
+</head>
+<body>
+<main>
+
+  <section id="gate" hidden>
+    <h1>Budget</h1>
+    <p class="muted">Enter your token.</p>
+    <form id="gate-form">
+      <input id="token" type="password" autocomplete="off" spellcheck="false"
+             autocapitalize="off" placeholder="token" aria-label="Token">
+      <button type="submit">Unlock</button>
+    </form>
+    <p id="gate-message" class="muted" role="status"></p>
+  </section>
+
+  <section id="readout" hidden>
+    <div class="topbar">
+      <button id="details-toggle" type="button" class="icon" aria-label="Details"
+              aria-expanded="false" aria-controls="details">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+          <circle cx="5" cy="12" r="1.8"></circle>
+          <circle cx="12" cy="12" r="1.8"></circle>
+          <circle cx="19" cy="12" r="1.8"></circle>
+        </svg>
+      </button>
+    </div>
+
+    <p id="label" class="label"></p>
+    <p id="balance" class="balance">&mdash;</p>
+
+    <p class="checked-row">
+      <span id="checked" class="muted" role="status"></span>
+      <button id="refresh" type="button" class="icon sm" aria-label="Refresh">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+             stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+      </button>
+    </p>
+
+    <div id="details" hidden>
+      <dl id="facts"></dl>
+      <p class="actions centered">
+        <button id="forget" type="button" class="link">Forget token</button>
+      </p>
+    </div>
+  </section>
+
+  <section id="error" hidden>
+    <h1>Budget</h1>
+    <p id="error-message" class="muted"></p>
+    <p class="actions"><button id="retry" type="button">Retry</button></p>
+  </section>
+
+</main>
+<script src="budget.js"></script>
+</body>
+</html>
