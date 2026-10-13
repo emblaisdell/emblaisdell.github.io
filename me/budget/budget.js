@@ -17,23 +17,37 @@ function clearToken() {
   try { localStorage.removeItem(TOKEN_KEY); } catch (e) { /* nothing to clear */ }
 }
 
-async function fetchBalance(token) {
-  const res = await fetch(ENDPOINT, {
-    method: 'GET',
+async function call(token, body) {
+  const init = {
+    method: body ? 'POST' : 'GET',
     mode: 'cors',
     cache: 'no-store',
     credentials: 'omit',
     referrerPolicy: 'no-referrer',
     headers: { 'Authorization': 'Bearer ' + token },
-  });
+  };
+  if (body) {
+    init.headers['Content-Type'] = 'application/json';
+    init.body = JSON.stringify(body);
+  }
+  const res = await fetch(ENDPOINT, init);
   if (res.status === 401) {
     const err = new Error('unauthorized');
     err.unauthorized = true;
     throw err;
   }
-  if (!res.ok) throw new Error('HTTP ' + res.status);
+  if (!res.ok) {
+    const err = new Error('HTTP ' + res.status);
+    err.status = res.status;
+    throw err;
+  }
   return res.json();
 }
+
+const fetchBalance = (token) => call(token);
+// The sk is the handle the server gave us for the charge we displayed, so the
+// ignore lands on that one even if another charge arrived since.
+const ignorePurchase = (token, sk) => call(token, { op: 'ignore', sk });
 
 // ── Rendering ───────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
@@ -61,6 +75,9 @@ function render(data) {
     ['month to date', money(month.net)],
     ['transactions', String(month.transactions ?? 0)],
   ];
+  // Donations and the like: real charges the ledger was told not to count.
+  // Only worth a row when there are any.
+  if (month.excluded > 0) rows.push(['excluded', money(month.excluded)]);
 
   const dl = $('facts');
   dl.textContent = '';
@@ -72,9 +89,51 @@ function render(data) {
     dl.append(dt, dd);
   }
 
+  const last = data.last_purchase;
+  $('last').hidden = !last;
+  if (last) {
+    const when = new Date(last.at);
+    $('last-desc').textContent = 'Last purchase: ' + money(last.amount) + ' on ' +
+      when.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    $('ignore').dataset.sk = last.sk;
+  }
+  armIgnore(false);
+
   $('checked').textContent = 'Last checked ' +
     new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   show('readout');
+}
+
+// Two taps to ignore: the first reveals the confirmation, the second commits.
+function armIgnore(armed) {
+  $('ignore-ask').hidden = armed;
+  $('ignore-confirm').hidden = !armed;
+}
+
+async function ignoreLast() {
+  const token = loadToken();
+  const sk = $('ignore').dataset.sk;
+  if (!token || !sk) { show('gate'); return; }
+  for (const id of ['ignore-yes', 'ignore-no']) $(id).disabled = true;
+  try {
+    render(await ignorePurchase(token, sk));
+    $('ignore-message').textContent = 'Ignored.';
+  } catch (e) {
+    if (e.unauthorized) {
+      clearToken();
+      $('gate-message').textContent = 'Not accepted. Try again.';
+      show('gate');
+    } else if (e.status === 404 || e.status === 409) {
+      // Already handled, or the ledger moved under us: show what's true now.
+      $('ignore-message').textContent = 'Already handled.';
+      await refresh();
+    } else {
+      $('ignore-message').textContent = 'Couldn\u2019t ignore it. Try again.';
+      armIgnore(false);
+    }
+  } finally {
+    for (const id of ['ignore-yes', 'ignore-no']) $(id).disabled = false;
+  }
 }
 
 // ── Flow ────────────────────────────────────────────────────────────────────
@@ -86,6 +145,7 @@ async function refresh() {
   $('refresh').classList.add('busy');
   try {
     render(await fetchBalance(token));
+    $('ignore-message').textContent = '';
   } catch (e) {
     if (e.unauthorized) {
       clearToken();
@@ -121,6 +181,13 @@ document.addEventListener('DOMContentLoaded', () => {
     $('details-toggle').setAttribute('aria-expanded', String(!panel.hidden));
   });
   $('retry').addEventListener('click', refresh);
+
+  $('ignore').addEventListener('click', () => {
+    $('ignore-message').textContent = '';
+    armIgnore(true);
+  });
+  $('ignore-no').addEventListener('click', () => armIgnore(false));
+  $('ignore-yes').addEventListener('click', ignoreLast);
 
   $('forget').addEventListener('click', () => {
     clearToken();

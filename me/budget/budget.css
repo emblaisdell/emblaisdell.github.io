@@ -135,4 +135,7 @@ button.icon.busy svg { animation: spin .8s linear infinite; }
   button.icon.busy { opacity: .5; }
 }
 .muted { color: var(--muted); font-size: .875rem; margin: 0; }
+.centered-text { text-align: center; margin-bottom: .5rem; }
+button.danger { color: var(--neg); border-color: var(--neg); }
+#last { padding-top: .75rem; border-top: 1px solid var(--line); margin-bottom: .75rem; }
 [hidden] { display: none !important; }

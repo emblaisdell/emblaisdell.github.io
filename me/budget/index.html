@@ -58,6 +58,17 @@
 
     <div id="details" hidden>
       <dl id="facts"></dl>
+      <div id="last" hidden>
+        <p id="last-desc" class="muted centered-text"></p>
+        <p id="ignore-ask" class="actions centered">
+          <button id="ignore" type="button">Ignore last purchase</button>
+        </p>
+        <p id="ignore-confirm" class="actions centered" hidden>
+          <button id="ignore-yes" type="button" class="danger">Yes, ignore it</button>
+          <button id="ignore-no" type="button" class="link">Cancel</button>
+        </p>
+        <p id="ignore-message" class="muted centered-text" role="status"></p>
+      </div>
       <p class="actions centered">
         <button id="forget" type="button" class="link">Forget token</button>
       </p>
