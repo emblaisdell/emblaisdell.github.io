@@ -7,15 +7,19 @@
  * ethereal music; short enveloped tones provide reactive sound effects.
  *
  * Browsers block audio until a user gesture, so the engine "unlocks" itself
- * on the first pointer / key / touch and starts the music then. Press M to
- * mute. Exposes a global `Sound`.
+ * on the first pointer / key / touch and starts the music then. Press M (or
+ * tap the corner label) to mute; muted, the game leaves the audio session
+ * alone so music the player has going in another app keeps playing
+ * underneath. Exposes a global `Sound`.
  * ========================================================================= */
 
 const Sound = (function () {
+  const MUTE_KEY = "shapeturret_muted";
   let ctx = null;
   let master, musicGain, sfxGain;
   let started = false;
   let muted = false;
+  try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch (e) { /* ignore */ }
 
   // Open, consonant pads (octaves + fifths) — slow and airy.
   const CHORDS = [
@@ -338,15 +342,33 @@ const Sound = (function () {
   }
 
   function unlock() {
+    if (muted) return;
+    // Safari 16.4+ can just be told "playback" (which also undoes release()'s
+    // "ambient"); the silent loop covers older iOS.
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) { /* ignore */ }
     ensure();
     enableSilentModePlayback();
     if (!ctx) return;
-    if (ctx.state === "suspended") ctx.resume();
+    // Not just "suspended": iOS leaves it "interrupted" when another app (or a
+    // call) took the audio, and unmuting has to revive that too.
+    if (ctx.state !== "running") ctx.resume().catch(() => {});
     if (!started) { started = true; startMusic(); }
+  }
+
+  // Hand the session back: stop the silent loop that promoted us to
+  // "playback", switch to "ambient" (mixes with other apps instead of
+  // interrupting them), and suspend the context so it stops holding the
+  // session at all.
+  function release() {
+    if (silenceEl) silenceEl.pause();
+    try { if (navigator.audioSession) navigator.audioSession.type = "ambient"; } catch (e) { /* ignore */ }
+    if (ctx) ctx.suspend().catch(() => {});
   }
 
   function setMuted(m) {
     muted = m;
+    try { localStorage.setItem(MUTE_KEY, m ? "1" : "0"); } catch (e) { /* ignore */ }
+    if (m) release(); else unlock();
     if (master) master.gain.setTargetAtTime(m ? 0.0 : 0.9, now(), 0.05);
   }
   function toggleMute() { setMuted(!muted); return muted; }

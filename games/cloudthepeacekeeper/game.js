@@ -176,8 +176,10 @@
   // Tiny WebAudio SFX (no asset files needed).
   // ---------------------------------------------------------------------------
   const Sound = (() => {
+    const MUTE_KEY = 'cloudthepeacekeeper_muted';
     let actx = null;
     let muted = false;
+    try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { /* ignore */ }
     // iOS treats Web Audio as "ambient" sound, so the hardware silent switch
     // mutes it. Declaring a "playback" audio session (Safari 16.4+) routes our
     // SFX through the media category, which plays even in silent mode. The API
@@ -197,6 +199,20 @@
       }
       return actx;
     };
+    // Muted, hand the session back so music the player has going in another
+    // app keeps playing underneath: 'ambient' mixes with it instead of
+    // interrupting it, and a suspended context stops holding the session.
+    const release = () => {
+      try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch (e) { /* ignore */ }
+      if (actx) { try { actx.suspend().catch(() => {}); } catch (e) { /* ignore */ } }
+    };
+    const resume = () => {
+      if (muted) return;
+      const a = ensure();
+      // Not just 'suspended': iOS leaves it 'interrupted' when another app
+      // (or a call) took the audio, and unmuting has to revive that too.
+      if (a && a.state !== 'running') a.resume().catch(() => {});
+    };
     const tone = (freq, dur, type = 'sine', gain = 0.18, slideTo = null) => {
       if (muted) return;
       const a = ensure();
@@ -214,8 +230,13 @@
       osc.stop(t + dur + 0.02);
     };
     return {
-      resume: () => { const a = ensure(); if (a && a.state === 'suspended') a.resume(); },
-      toggleMute: () => { muted = !muted; return muted; },
+      resume,
+      toggleMute: () => {
+        muted = !muted;
+        try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) { /* ignore */ }
+        if (muted) release(); else resume();
+        return muted;
+      },
       isMuted: () => muted,
       zap: () => { tone(140, 0.18, 'sawtooth', 0.16, 60); tone(900, 0.08, 'square', 0.06); },
       scare: () => tone(520, 0.12, 'triangle', 0.08, 760),

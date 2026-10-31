@@ -10,6 +10,9 @@
 // `suspended` -- that omission is the classic "sound dies after rejoin" bug),
 // rebuilds a fresh context when the old one is `closed`, and sets the iOS audio
 // session to `playback` so sound survives the silent/ringer switch.
+//
+// Muted, `ensure()` leaves the audio session alone (and Music never starts), so
+// music the player has going in another app keeps playing underneath the game.
 
 const STORE_KEY = 'ttt_muted';
 
@@ -24,8 +27,9 @@ export class Sound {
   }
 
   // The accessor: builds / revives / rebuilds, and returns the live context (or
-  // null if Web Audio is unavailable). Safe to call from anywhere, any time.
+  // null if Web Audio is unavailable or we're muted). Safe to call from anywhere, any time.
   ensure() {
+    if (this.muted) return null;
     // iOS/WebKit: 'playback' keeps sound on even with the silent switch engaged.
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* ignore */ }
     // Build fresh on first use, or when iOS has torn the context down.
@@ -48,9 +52,17 @@ export class Sound {
   // Call on a user gesture / when the page returns to the foreground.
   resume() { this.ensure(); }
 
+  // Hand the session back: 'ambient' mixes with other apps instead of
+  // interrupting them, and a suspended context stops holding the session at all.
+  release() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch (e) { /* ignore */ }
+    if (this.ctx) { try { this.ctx.suspend().catch(() => {}); } catch (e) { /* ignore */ } }
+  }
+
   setMuted(m) {
     this.muted = m;
     try { localStorage.setItem(STORE_KEY, m ? '1' : '0'); } catch (e) { /* ignore */ }
+    if (m) this.release(); else this.ensure();
   }
   toggle() { this.setMuted(!this.muted); return this.muted; }
 

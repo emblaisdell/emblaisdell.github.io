@@ -9,6 +9,8 @@
  *  - iOS suspends AND sometimes closes the context on app-switch / call /
  *    lock, entering 'interrupted' — a state naive code never revives.
  * Both are handled in audio() below, which every sound routes through.
+ * Muted, audio() leaves the session alone so music the player has going
+ * in another app keeps playing underneath the game.
  * ------------------------------------------------------------------ */
 
 let actx = null, graphCtx = null;
@@ -18,6 +20,7 @@ let muted = false;
 try { muted = localStorage.getItem('wop_muted') === '1'; } catch (_) {}
 
 function audio(){
+  if (muted) return null;
   // iOS/WebKit: play through the silent/ringer switch.
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) {}
   // Build fresh on first use, or after iOS has torn the context down.
@@ -31,6 +34,13 @@ function audio(){
   if (actx.state !== 'running'){ try { actx.resume().catch(() => {}); } catch (_) {} }
   if (graphCtx !== actx) buildGraph();
   return actx;
+}
+
+/* Hand the session back: 'ambient' mixes with other apps instead of
+ * interrupting them, and a suspended context stops holding it at all. */
+function release(){
+  try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch (_) {}
+  if (actx){ try { actx.suspend().catch(() => {}); } catch (_) {} }
 }
 
 function buildGraph(){
@@ -248,7 +258,7 @@ const SFX = {
     muted = !muted;
     try { localStorage.setItem('wop_muted', muted ? '1' : '0'); } catch (_) {}
     if (master) master.gain.value = muted ? 0 : 0.85;
-    if (!muted) audio();
+    if (muted) release(); else audio();
     return muted;
   },
   /* called from the first real user gesture */

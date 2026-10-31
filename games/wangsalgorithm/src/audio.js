@@ -18,6 +18,9 @@
  *
  * So everything funnels through ctx(), which builds, revives and rebuilds as
  * needed, and the page wakes it again the moment it returns to the foreground.
+ *
+ * Muted, ctx() leaves the audio session alone, so music the player has going
+ * in another app keeps playing underneath the game.
  */
 (function (root) {
   'use strict';
@@ -28,6 +31,7 @@
   try { muted = root.localStorage && root.localStorage.getItem(KEY) === '1'; } catch (e) {}
 
   function ctx() {
+    if (muted) return null;
     // Tells iOS/WebKit to keep playing with the ringer/silent switch engaged.
     try { if (root.navigator && root.navigator.audioSession) root.navigator.audioSession.type = 'playback'; } catch (e) {}
     if (!actx || actx.state === 'closed') {
@@ -38,6 +42,13 @@
       try { actx.resume()['catch'](function () {}); } catch (e) {}
     }
     return actx;
+  }
+
+  // Hand the session back: 'ambient' mixes with other apps instead of
+  // interrupting them, and a suspended context stops holding the session.
+  function release() {
+    try { if (root.navigator && root.navigator.audioSession) root.navigator.audioSession.type = 'ambient'; } catch (e) {}
+    if (actx) { try { actx.suspend()['catch'](function () {}); } catch (e) {} }
   }
 
   // A short bubble blip: a sine swept between two pitches with a pluck envelope.
@@ -110,6 +121,7 @@
   function setMuted(on) {
     muted = !!on;
     try { if (root.localStorage) root.localStorage.setItem(KEY, muted ? '1' : '0'); } catch (e) {}
+    if (muted) release(); else ctx();
   }
 
   // Wake the context the instant the page comes back, so the next sound is not

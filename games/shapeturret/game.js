@@ -68,6 +68,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const helpEl = document.getElementById("help");
 const helpHint = document.getElementById("help-hint");
+const muteHint = document.getElementById("mute-hint");
 
 let W = 0, H = 0, DPR = 1;
 
@@ -277,6 +278,13 @@ function toggleHelp(show) {
 }
 helpHint.addEventListener("click", () => toggleHelp(true));
 helpEl.addEventListener("click", () => toggleHelp(false));
+// Mute is on M, but a phone has no keyboard, so it gets a corner label too.
+function toggleMute() {
+  Sound.toggleMute();
+  muteHint.textContent = Sound.isMuted() ? "Unmute" : "Mute";
+}
+muteHint.textContent = Sound.isMuted() ? "Unmute" : "Mute";
+muteHint.addEventListener("click", toggleMute);
 // The win/lose screen ignores input for its first CONFIG.endScreenDelay seconds
 // so it stays up long enough to read and a stray click can't skip it.
 function canDismissEndScreen() {
@@ -286,7 +294,7 @@ window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (k === "h") toggleHelp();
   else if (k === "escape") toggleHelp(false);
-  else if (k === "m") Sound.toggleMute();
+  else if (k === "m") toggleMute();
   else if (k === "r" && canDismissEndScreen()) reset();
 });
 // Restart on click when the game is over.

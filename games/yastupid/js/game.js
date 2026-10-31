@@ -176,9 +176,12 @@ function updateCamera(dt) {
 
 /* -------------------------------- sound ----------------------------------- */
 // Bubbly blips synthesised on the fly — no asset files, no dependencies.
+// Muted, the game leaves the audio session alone, so music the player has going
+// in another app keeps playing underneath.
 let actx = null;
 let muted = localStorage.getItem('yastupid_muted') === '1';
 function audio() {
+  if (muted) return null;
   // 'playback' tells iOS/WebKit to keep playing even with the ringer/silent switch off.
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) {}
   // Backgrounding on mobile can leave the context 'closed' (iOS sometimes tears it
@@ -191,6 +194,12 @@ function audio() {
   // otherwise. Only checking 'suspended' left interrupted contexts dead on rejoin.
   if (actx && actx.state !== 'running') { try { actx.resume().catch(() => {}); } catch (_) {} }
   return actx;
+}
+// Hand the session back: 'ambient' mixes with other apps instead of interrupting
+// them, and a suspended context stops holding the session at all.
+function releaseAudio() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch (_) {}
+  if (actx) { try { actx.suspend().catch(() => {}); } catch (_) {} }
 }
 // Returning to the foreground: revive the context proactively so the next sound
 // isn't dropped. There's still a pointerdown fallback for browsers that require a gesture.
@@ -520,7 +529,8 @@ el('muteBtn').onclick = () => {
   muted = !muted;
   localStorage.setItem('yastupid_muted', muted ? '1' : '0');
   renderMute();
-  if (!muted) popSound();   // little confirmation blip when turning sound back on
+  if (muted) releaseAudio();
+  else popSound();          // little confirmation blip when turning sound back on
 };
 renderMute();
 el('newBtn').onclick = newRandomLevel;

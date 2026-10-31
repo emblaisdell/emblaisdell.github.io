@@ -22,8 +22,8 @@
     width: 100vw;
     height: 100vh;
   }
-  /* Subtle pointer to the help screen */
-  #help-hint {
+  /* Subtle pointers to the help screen and the mute toggle */
+  #help-hint, #mute-hint {
     position: fixed;
     top: 26px;
     left: 14px;
@@ -34,7 +34,8 @@
     cursor: pointer;
     z-index: 10;
   }
-  #help-hint:hover { color: rgba(255, 255, 255, 0.55); }
+  #mute-hint { top: 52px; }
+  #help-hint:hover, #mute-hint:hover { color: rgba(255, 255, 255, 0.55); }
 
   #help {
     position: fixed;
@@ -72,6 +73,7 @@
 <body>
   <canvas id="game"></canvas>
   <div id="help-hint" title="Rules">Help</div>
+  <div id="mute-hint">Mute</div>
 
   <div id="help">
     <div class="panel">

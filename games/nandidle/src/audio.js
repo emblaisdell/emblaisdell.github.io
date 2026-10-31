@@ -4,6 +4,9 @@
 // The context is built lazily and revived on anything that is not 'running',
 // including iOS's 'interrupted', and rebuilt outright when iOS closes it —
 // otherwise sound dies for good when the tab is backgrounded and reopened.
+//
+// Muted, the game keeps its hands off the audio session entirely, so music the
+// player has going in another app keeps playing underneath.
 
 const KEY = 'nand-idle-muted';
 let actx = null;
@@ -13,6 +16,7 @@ let muted = false;
 try { muted = localStorage.getItem(KEY) === '1'; } catch { /* private mode */ }
 
 function audio() {
+  if (muted) return null;
   // iOS/WebKit: 'playback' plays through the silent switch.
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* not supported */ }
   if (!actx || actx.state === 'closed') {
@@ -30,6 +34,13 @@ function audio() {
   return actx;
 }
 
+// Hand the session back: 'ambient' mixes with other apps instead of
+// interrupting them, and a suspended context stops holding the session at all.
+function release() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch { /* not supported */ }
+  if (actx) { try { actx.suspend().catch(() => {}); } catch { /* ignore */ } }
+}
+
 export function initAudio(root = document) {
   root.addEventListener('pointerdown', () => audio(), { passive: true });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) audio(); });
@@ -41,7 +52,7 @@ export function setMuted(v) {
   muted = !!v;
   try { localStorage.setItem(KEY, muted ? '1' : '0'); } catch { /* ignore */ }
   if (muted && humGain) humGain.gain.value = 0;
-  if (!muted) audio();
+  if (muted) release(); else audio();
 }
 
 // --- building blocks ---------------------------------------------------------
