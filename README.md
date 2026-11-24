@@ -69,8 +69,18 @@ Each game folder is a one-time snapshot of its source project, not a live sync.
 
 ### Projects
 
-`/projects/` — mostly physical things I've built for fun. **(Page live; write-ups in progress)**
-`projects/AT-TV/` is started but empty; the page currently shows a "write-ups coming" state.
+`/projects/` — mostly physical things I've built for fun. **(Live)**
+The landing page lists each write-up with a thumbnail and one-line description:
+- **Redstone Lamp** (`projects/redstone_lamp/`) — a laser-cut Minecraft redstone-lamp shade,
+  designed with Claude Code.
+- **Elite Chess Set** (`projects/elite_chess/`) — a 3D-printed set modeled on Chess.com's Elite
+  puzzle tier, with the STLs to download.
+- **AT-TV** (`projects/AT-TV/`) — 3D-printed, weathered AT-ST walker legs for my TV.
+
+Each write-up is written in Markdown (`<name>.md`) and baked by hand into the `<name>.html`
+beside it; edit the Markdown, then re-bake. Image text in the Markdown becomes the photo's
+visible caption (AT-TV) or its alt text (the older two). `projects/opengym/` (an opening
+repertoire trainer) is also hosted here but isn't linked from the page.
 
 ### Legacy
 

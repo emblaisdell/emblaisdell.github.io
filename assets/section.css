@@ -184,6 +184,19 @@ a { color: inherit; }
 .article td.num { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .article .caption { color: var(--muted); font-size: .9rem; margin: -.6rem 0 1.6rem; }
 
+/* Photos with a visible caption, alone or side by side in a .pair. In a pair
+   each figure grows by its photo's aspect ratio (--ar, set inline), so the
+   photos come out the same height without cropping; on phones they stack. */
+.article figure { margin: 1.4rem 0; }
+.article figure img { margin: 0; }
+.article figure .caption { margin: .55rem 0 0; }
+.article .pair { display: flex; gap: 1rem; align-items: flex-start; margin: 1.4rem 0; }
+.article .pair figure { flex: var(--ar, 1) 1 0; min-width: 0; margin: 0; }
+@media (max-width: 560px) {
+  .article .pair { display: block; margin: 0; }
+  .article .pair figure { margin: 1.4rem 0; }
+}
+
 /* Collapsible aside (e.g. the agent instructions) */
 .article details {
   margin: 1.4rem 0; padding: .6rem 1.1rem;
